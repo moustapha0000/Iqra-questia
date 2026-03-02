@@ -1,0 +1,1 @@
+307:                   <span className="font-extrabold text-red-500 text-base sm:text-lg">{userState.isPremium ? '∞' : userState.hearts}</span>
