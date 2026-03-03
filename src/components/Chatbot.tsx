@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Loader2, User, Bot, Maximize2, Minimize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, User, Bot, Maximize2, Minimize2, Paperclip, ScanEye, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI, ThinkingLevel } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import Markdown from 'react-markdown';
+
+interface AttachedFile {
+  name: string;
+  mimeType: string;
+  data: string; // base64
+  url: string; // object URL for preview
+}
 
 interface Message {
   role: 'user' | 'model';
   text: string;
+  files?: AttachedFile[];
 }
 
 export function Chatbot() {
@@ -20,18 +28,15 @@ export function Chatbot() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [pageContext, setPageContext] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Gemini API
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  useEffect(() => {
-    if (!chatRef.current) {
-      chatRef.current = ai.chats.create({
-        model: 'gemini-3.1-flash-lite-preview',
-        config: {
-          systemInstruction: `Tu es "Guide Iqra", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
+  const systemInstruction = `Tu es "Guide Iqra", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
 Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.
 
 RÈGLES IMPORTANTES :
@@ -39,15 +44,8 @@ RÈGLES IMPORTANTES :
 2. SOURCES : Base toujours tes réponses sur le Coran et la Sunnah authentique. Cite les références quand c'est possible.
 3. TON ET STYLE : Sois chaleureux, encourageant, apaisant et respectueux. Utilise des formules de politesse islamiques (As-salamu alaykum, Insha'Allah, BarakAllahu feek).
 4. LANGUE : Réponds toujours dans la langue utilisée par l'utilisateur. S'il te parle en français, réponds en français clair et universel. S'il te parle en wolof, réponds en wolof. N'utilise pas de termes wolofs si l'utilisateur s'exprime en français, afin de rester compréhensible pour tous.
-5. FORMATAGE : Utilise le Markdown pour structurer tes réponses. Fais des paragraphes courts, utilise des listes à puces, et mets en gras les termes importants pour faciliter la lecture sur téléphone. Sois concis mais complet.`,
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-        }
-      });
-    }
-  }, []);
+5. FORMATAGE : Utilise le Markdown pour structurer tes réponses. Fais des paragraphes courts, utilise des listes à puces, et mets en gras les termes importants pour faciliter la lecture sur téléphone. Sois concis mais complet.
+6. ANALYSE DE FICHIERS/CONTEXTE : Si l'utilisateur te fournit le contexte d'une page, une image ou un fichier, analyse-le attentivement pour répondre à sa question de manière précise et contextualisée.`;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -60,13 +58,56 @@ RÈGLES IMPORTANTES :
     scrollToBottom();
   }, [messages.length, isOpen]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    Promise.all(files.map(file => new Promise<AttachedFile>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = (reader.result as string).split(',')[1];
+        resolve({
+          name: file.name,
+          mimeType: file.type,
+          data: base64,
+          url: URL.createObjectURL(file)
+        });
+      };
+      reader.readAsDataURL(file);
+    }))).then(newFiles => {
+      setAttachedFiles(prev => [...prev, ...newFiles]);
+    });
+    
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => {
+      const newFiles = [...prev];
+      URL.revokeObjectURL(newFiles[index].url);
+      newFiles.splice(index, 1);
+      return newFiles;
+    });
+  };
+
+  const attachPageContext = () => {
+    if (pageContext) {
+      setPageContext(null); // Toggle off
+      return;
+    }
+    // Extract text from the main content area, fallback to body
+    const mainContent = document.querySelector('main')?.innerText || document.body.innerText;
+    // Limit to ~15000 characters to avoid huge payloads
+    setPageContext(mainContent.substring(0, 15000));
+  };
+
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && attachedFiles.length === 0 && !pageContext) || isLoading) return;
 
     if (!navigator.onLine) {
       setMessages((prev) => [
         ...prev,
-        { role: 'user', text: input.trim() },
+        { role: 'user', text: input.trim() || 'Fichier(s) joint(s)' },
         { role: 'model', text: "Désolé, je ne peux pas me connecter au réseau. Veuillez vérifier votre connexion internet pour continuer à discuter avec moi." },
       ]);
       setInput('');
@@ -74,13 +115,55 @@ RÈGLES IMPORTANTES :
     }
 
     const userMessage = input.trim();
+    const currentFiles = [...attachedFiles];
+    const currentPageContext = pageContext;
+    
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', text: userMessage }]);
+    setAttachedFiles([]);
+    setPageContext(null);
+    
+    setMessages((prev) => [...prev, { role: 'user', text: userMessage, files: currentFiles }]);
     setIsLoading(true);
 
     try {
-      if (!chatRef.current) {
-        throw new Error("Le chat n'a pas pu être initialisé.");
+      // Build history for generateContentStream
+      const historyContents: any[] = [];
+      let lastRole = '';
+      
+      const historyMessages = messages.slice(1); // Skip initial greeting
+      
+      for (const m of historyMessages) {
+        if (m.text.trim() === '' && (!m.files || m.files.length === 0)) continue;
+        if (historyContents.length === 0 && m.role === 'model') continue;
+        
+        const parts: any[] = [];
+        if (m.text) parts.push({ text: m.text });
+        if (m.files) {
+          m.files.forEach(f => parts.push({ inlineData: { data: f.data, mimeType: f.mimeType } }));
+        }
+        
+        if (m.role !== lastRole) {
+          historyContents.push({ role: m.role, parts });
+          lastRole = m.role;
+        } else {
+          historyContents[historyContents.length - 1].parts.push(...parts);
+        }
+      }
+      
+      // Add current message
+      const currentParts: any[] = [];
+      if (currentPageContext) {
+        currentParts.push({ text: `[CONTEXTE DE LA PAGE ACTUELLE FOURNI PAR L'UTILISATEUR]\n${currentPageContext}\n[FIN DU CONTEXTE]\n\n` });
+      }
+      if (userMessage) currentParts.push({ text: userMessage });
+      currentFiles.forEach(f => currentParts.push({ inlineData: { data: f.data, mimeType: f.mimeType } }));
+      
+      if (currentParts.length === 0) currentParts.push({ text: "Pouvez-vous analyser ceci ?" });
+
+      if (lastRole === 'user') {
+        historyContents[historyContents.length - 1].parts.push(...currentParts);
+      } else {
+        historyContents.push({ role: 'user', parts: currentParts });
       }
 
       let response;
@@ -89,8 +172,15 @@ RÈGLES IMPORTANTES :
 
       while (retries > 0) {
         try {
-          response = await chatRef.current.sendMessageStream({
-            message: userMessage
+          response = await ai.models.generateContentStream({
+            model: 'gemini-3-flash-preview', // Use flash for multimodal capabilities
+            contents: historyContents,
+            config: {
+              systemInstruction,
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+            }
           });
           break; // Success, exit retry loop
         } catch (error: any) {
@@ -243,9 +333,27 @@ RÈGLES IMPORTANTES :
                           : 'bg-daara-gold/10 border border-daara-gold/30 text-daara-text rounded-tl-sm'
                       }`}
                     >
-                      <div className="text-base leading-relaxed max-w-none [&>p]:mb-3 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:ml-5 [&>ul]:mb-3 [&>ol]:list-decimal [&>ol]:ml-5 [&>ol]:mb-3 [&>strong]:text-daara-gold-light">
-                        <Markdown>{msg.text}</Markdown>
-                      </div>
+                      {msg.files && msg.files.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {msg.files.map((file, i) => (
+                            <div key={i} className="relative group rounded-lg overflow-hidden border border-daara-gold/20">
+                              {file.mimeType.startsWith('image/') ? (
+                                <img src={file.url} alt={file.name} className="h-20 w-auto object-cover" referrerPolicy="no-referrer" />
+                              ) : (
+                                <div className="h-20 w-20 flex flex-col items-center justify-center bg-daara-bg p-2 text-center">
+                                  <Paperclip className="w-6 h-6 text-daara-gold mb-1" />
+                                  <span className="text-[10px] text-daara-text truncate w-full">{file.name}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {msg.text && (
+                        <div className="text-base leading-relaxed max-w-none [&>p]:mb-3 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:ml-5 [&>ul]:mb-3 [&>ol]:list-decimal [&>ol]:ml-5 [&>ol]:mb-3 [&>strong]:text-daara-gold-light">
+                          <Markdown>{msg.text}</Markdown>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -268,19 +376,78 @@ RÈGLES IMPORTANTES :
 
             {/* Input Area */}
             <div className="p-4 bg-daara-surface border-t border-daara-gold/10">
-              <div className="relative flex items-center">
+              
+              {/* Attachments Preview */}
+              {(attachedFiles.length > 0 || pageContext) && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {pageContext && (
+                    <div className="flex items-center gap-2 bg-daara-gold/10 border border-daara-gold/30 text-daara-gold px-3 py-1.5 rounded-lg text-sm">
+                      <ScanEye className="w-4 h-4" />
+                      <span>Contexte de la page inclus</span>
+                      <button onClick={() => setPageContext(null)} className="hover:text-daara-gold-light ml-1">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  {attachedFiles.map((file, idx) => (
+                    <div key={idx} className="relative group rounded-lg overflow-hidden border border-daara-gold/30 bg-daara-bg">
+                      {file.mimeType.startsWith('image/') ? (
+                        <img src={file.url} alt={file.name} className="h-12 w-auto object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="h-12 px-3 flex items-center gap-2">
+                          <Paperclip className="w-4 h-4 text-daara-gold" />
+                          <span className="text-xs text-daara-text max-w-[100px] truncate">{file.name}</span>
+                        </div>
+                      )}
+                      <button 
+                        onClick={() => removeFile(idx)}
+                        className="absolute top-0 right-0 bg-black/50 text-white p-1 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="relative flex items-center gap-2">
+                <div className="flex gap-1">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    className="hidden" 
+                    multiple 
+                    accept="image/*,audio/*,video/*,application/pdf"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-gold/10 rounded-xl transition-colors"
+                    title="Joindre un fichier (Image, Audio, Vidéo)"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={attachPageContext}
+                    className={`p-2 rounded-xl transition-colors ${pageContext ? 'text-daara-gold bg-daara-gold/10' : 'text-daara-text-muted hover:text-daara-gold hover:bg-daara-gold/10'}`}
+                    title="Analyser le contenu de cette page"
+                  >
+                    <ScanEye className="w-5 h-5" />
+                  </button>
+                </div>
+
                 <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyPress}
-                  placeholder="Posez votre question sur l'Islam..."
-                  className="w-full bg-daara-bg border border-daara-gold/20 rounded-xl pl-4 pr-12 py-4 text-base text-daara-text placeholder-daara-text-muted focus:outline-none focus:border-daara-gold focus:ring-1 focus:ring-daara-gold resize-none scrollbar-hide"
+                  placeholder="Posez votre question..."
+                  className="flex-1 bg-daara-bg border border-daara-gold/20 rounded-xl pl-4 pr-12 py-3 text-base text-daara-text placeholder-daara-text-muted focus:outline-none focus:border-daara-gold focus:ring-1 focus:ring-daara-gold resize-none scrollbar-hide"
                   rows={1}
-                  style={{ minHeight: '56px', maxHeight: '150px' }}
+                  style={{ minHeight: '48px', maxHeight: '120px' }}
                 />
                 <button
                   onClick={handleSend}
-                  disabled={!input.trim() || isLoading}
+                  disabled={(!input.trim() && attachedFiles.length === 0 && !pageContext) || isLoading}
                   className="absolute right-2 p-2 text-daara-gold hover:text-daara-gold-light disabled:opacity-50 disabled:hover:text-daara-gold transition-colors"
                 >
                   <Send className="w-5 h-5" />
