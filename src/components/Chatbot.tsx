@@ -29,7 +29,7 @@ export function Chatbot() {
   useEffect(() => {
     if (!chatRef.current) {
       chatRef.current = ai.chats.create({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3-flash-preview',
         config: {
           systemInstruction: `Tu es "Guide Iqra", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
 Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.
