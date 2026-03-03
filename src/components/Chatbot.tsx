@@ -21,9 +21,32 @@ export function Chatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatRef = useRef<any>(null);
 
   // Initialize Gemini API
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+  useEffect(() => {
+    if (!chatRef.current) {
+      chatRef.current = ai.chats.create({
+        model: 'gemini-3-flash-preview',
+        config: {
+          systemInstruction: `Tu es "L'Oustaz", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
+Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.
+
+RÈGLES IMPORTANTES :
+1. DOMAINE D'EXPERTISE : Réponds UNIQUEMENT aux questions sur l'Islam (Coran, Hadiths, Fiqh, Seerah, spiritualité, comportement). Si on te pose une question hors sujet, excuse-toi poliment et recadre sur l'Islam.
+2. SOURCES : Base toujours tes réponses sur le Coran et la Sunnah authentique. Cite les références quand c'est possible.
+3. TON ET STYLE : Sois chaleureux, encourageant, apaisant et respectueux. Utilise des formules de politesse islamiques (As-salamu alaykum, Insha'Allah, BarakAllahu feek).
+4. LANGUE : Réponds toujours dans la langue utilisée par l'utilisateur. S'il te parle en français, réponds en français clair et universel. S'il te parle en wolof, réponds en wolof. N'utilise pas de termes wolofs si l'utilisateur s'exprime en français, afin de rester compréhensible pour tous.
+5. FORMATAGE : Utilise le Markdown pour structurer tes réponses. Fais des paragraphes courts, utilise des listes à puces, et mets en gras les termes importants pour faciliter la lecture sur téléphone. Sois concis mais complet.`,
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+        }
+      });
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,45 +78,12 @@ export function Chatbot() {
     setIsLoading(true);
 
     try {
-      const historyMessages = messages.slice(1);
-      const historyContents: any[] = [];
-      let lastRole = '';
-      
-      for (const m of historyMessages) {
-        if (m.text.trim() === '') continue;
-        if (historyContents.length === 0 && m.role === 'model') continue;
-        
-        if (m.role !== lastRole) {
-          historyContents.push({ role: m.role, parts: [{ text: m.text }] });
-          lastRole = m.role;
-        } else {
-          historyContents[historyContents.length - 1].parts[0].text += '\n\n' + m.text;
-        }
-      }
-      
-      if (lastRole === 'user') {
-        historyContents[historyContents.length - 1].parts[0].text += '\n\n' + userMessage;
-      } else {
-        historyContents.push({ role: 'user', parts: [{ text: userMessage }] });
+      if (!chatRef.current) {
+        throw new Error("Le chat n'a pas pu être initialisé.");
       }
 
-      const response = await ai.models.generateContentStream({
-        model: 'gemini-3-flash-preview',
-        contents: historyContents,
-        config: {
-          systemInstruction: `Tu es "L'Oustaz", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
-Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.
-
-RÈGLES IMPORTANTES :
-1. DOMAINE D'EXPERTISE : Réponds UNIQUEMENT aux questions sur l'Islam (Coran, Hadiths, Fiqh, Seerah, spiritualité, comportement). Si on te pose une question hors sujet, excuse-toi poliment et recadre sur l'Islam.
-2. SOURCES : Base toujours tes réponses sur le Coran et la Sunnah authentique. Cite les références quand c'est possible.
-3. TON ET STYLE : Sois chaleureux, encourageant, apaisant et respectueux. Utilise des formules de politesse islamiques (As-salamu alaykum, Insha'Allah, BarakAllahu feek).
-4. LANGUE : Réponds toujours dans la langue utilisée par l'utilisateur. S'il te parle en français, réponds en français clair et universel. S'il te parle en wolof, réponds en wolof. N'utilise pas de termes wolofs si l'utilisateur s'exprime en français, afin de rester compréhensible pour tous.
-5. FORMATAGE : Utilise le Markdown pour structurer tes réponses. Fais des paragraphes courts, utilise des listes à puces, et mets en gras les termes importants pour faciliter la lecture sur téléphone. Sois concis mais complet.`,
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-        }
+      const response = await chatRef.current.sendMessageStream({
+        message: userMessage
       });
 
       // We don't set isLoading(false) here so the loader stays until the first chunk arrives
@@ -101,13 +91,14 @@ RÈGLES IMPORTANTES :
 
       let fullText = '';
       for await (const chunk of response) {
+        const c = chunk as any;
         if (isFirstChunk) {
           setIsLoading(false);
           setMessages((prev) => [...prev, { role: 'model', text: '' }]);
           isFirstChunk = false;
         }
-        if (chunk.text) {
-          fullText += chunk.text;
+        if (c.text) {
+          fullText += c.text;
           setMessages((prev) => {
             const newMessages = [...prev];
             newMessages[newMessages.length - 1].text = fullText;
@@ -115,11 +106,11 @@ RÈGLES IMPORTANTES :
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chatbot error:", error);
       setMessages((prev) => [
         ...prev,
-        { role: 'model', text: "Désolé, une erreur s'est produite. Veuillez vérifier votre connexion ou réessayer plus tard." },
+        { role: 'model', text: `Désolé, une erreur s'est produite: ${error.message || error}. Veuillez vérifier votre connexion ou réessayer plus tard.` },
       ]);
     } finally {
       setIsLoading(false);
