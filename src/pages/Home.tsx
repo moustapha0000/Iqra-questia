@@ -66,7 +66,7 @@ export function Home({ setPage }: HomeProps) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+      <div id="learning-categories" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (

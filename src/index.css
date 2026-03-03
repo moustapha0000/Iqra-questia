@@ -15,15 +15,15 @@
 }
 
 :root[data-theme="light"] {
-  /* Light Mode */
-  --color-daara-bg: #fdfbf7; /* Off-white / Cream */
+  /* Light Mode - Modern, Crisp, High Contrast */
+  --color-daara-bg: #f8fafc; /* Tailwind slate-50 */
   --color-daara-surface: #ffffff;
-  --color-daara-surface-hover: #f3efe6;
-  --color-daara-gold: #d4a345; /* Slightly darker gold for contrast */
-  --color-daara-gold-light: #e5b85c;
-  --color-daara-text: #0a1a11; /* Dark green/black */
-  --color-daara-text-muted: #4a5d53;
-  --bg-gradient: radial-gradient(circle at 50% 0%, #f3efe6 0%, transparent 70%);
+  --color-daara-surface-hover: #f1f5f9; /* Tailwind slate-100 */
+  --color-daara-gold: #ca8a04; /* Tailwind yellow-600 */
+  --color-daara-gold-light: #eab308; /* Tailwind yellow-500 */
+  --color-daara-text: #0f172a; /* Tailwind slate-900 */
+  --color-daara-text-muted: #64748b; /* Tailwind slate-500 */
+  --bg-gradient: radial-gradient(circle at 50% 0%, #ffffff 0%, #f8fafc 70%);
 }
 
 @theme {

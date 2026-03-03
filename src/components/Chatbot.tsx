@@ -261,6 +261,7 @@ RÈGLES IMPORTANTES :
     <>
       {/* Floating Button */}
       <button
+        id="chatbot-toggle"
         onClick={() => setIsOpen(true)}
         className={`fixed bottom-24 sm:bottom-8 right-4 sm:right-8 w-14 h-14 bg-gradient-to-r from-daara-gold to-daara-gold-light text-daara-bg rounded-full shadow-lg shadow-daara-gold/30 hover:scale-110 hover:shadow-xl hover:shadow-daara-gold/40 transition-all z-50 flex items-center justify-center group ${isOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'}`}
         aria-label="Ouvrir le Guide Iqra"
@@ -401,7 +402,7 @@ RÈGLES IMPORTANTES :
                       )}
                       <button 
                         onClick={() => removeFile(idx)}
-                        className="absolute top-0 right-0 bg-black/50 text-white p-1 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-0 right-0 bg-daara-text/50 text-daara-bg p-1 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="w-3 h-3" />
                       </button>

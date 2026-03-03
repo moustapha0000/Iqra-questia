@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle } from 'lucide-react';
 import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface HeaderProps {
   currentPage: PageType;
   setPage: (page: PageType) => void;
+  startTutorial?: () => void;
 }
 
-export function Header({ currentPage, setPage }: HeaderProps) {
+export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
@@ -107,18 +108,36 @@ export function Header({ currentPage, setPage }: HeaderProps) {
               )}
               <button
                 onClick={toggleTheme}
-                className="ml-2 p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface-hover rounded-full transition-colors"
+                className="theme-toggle-btn ml-2 p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface-hover rounded-full transition-colors"
                 title={theme === 'dark' ? "Passer au mode clair" : "Passer au mode sombre"}
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
+              {startTutorial && (
+                <button
+                  onClick={startTutorial}
+                  className="ml-2 p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface-hover rounded-full transition-colors"
+                  title="Lancer le tutoriel"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+              )}
             </nav>
 
             {/* Mobile Menu Button */}
             <div className="flex items-center gap-2 md:hidden">
+              {startTutorial && (
+                <button
+                  onClick={startTutorial}
+                  className="p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface rounded-xl transition-colors"
+                  aria-label="Lancer le tutoriel"
+                >
+                  <HelpCircle className="w-6 h-6" />
+                </button>
+              )}
               <button
                 onClick={toggleTheme}
-                className="p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface rounded-xl transition-colors"
+                className="theme-toggle-btn p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface rounded-xl transition-colors"
                 aria-label="Changer le thème"
               >
                 {theme === 'dark' ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
@@ -164,13 +183,13 @@ export function Header({ currentPage, setPage }: HeaderProps) {
                 onClick={() => handleNav('home')}
               >
                 <BookOpen className="w-6 h-6 text-daara-gold" />
-                <span className="font-serif text-2xl font-bold text-white tracking-wide">
+                <span className="font-serif text-2xl font-bold text-daara-text tracking-wide">
                   Iqra Quest
                 </span>
               </div>
               
               <button
-                className="p-2 sm:p-3 text-white hover:text-daara-gold transition-colors bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+                className="p-2 sm:p-3 text-daara-text hover:text-daara-gold transition-colors bg-daara-text/5 rounded-full backdrop-blur-sm border border-daara-text/10"
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Close menu"
               >
@@ -194,17 +213,17 @@ export function Header({ currentPage, setPage }: HeaderProps) {
                       className={`group flex items-center justify-between w-full p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
                         isActive
                           ? 'bg-daara-gold/10 border border-daara-gold/30'
-                          : 'hover:bg-white/5 border border-transparent'
+                          : 'hover:bg-daara-text/5 border border-transparent'
                       }`}
                     >
                       <div className="flex items-center gap-4 sm:gap-5">
                         <div className={`p-2 sm:p-3 rounded-xl transition-colors ${
-                          isActive ? 'bg-daara-gold text-daara-bg' : 'bg-white/5 text-daara-text-muted group-hover:text-white group-hover:bg-white/10'
+                          isActive ? 'bg-daara-gold text-daara-bg' : 'bg-daara-text/5 text-daara-text-muted group-hover:text-daara-text group-hover:bg-daara-text/10'
                         }`}>
                           <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
                         <span className={`text-xl sm:text-2xl md:text-3xl font-serif font-medium tracking-wide transition-colors ${
-                          isActive ? 'text-daara-gold' : 'text-white group-hover:text-daara-gold-light'
+                          isActive ? 'text-daara-gold' : 'text-daara-text group-hover:text-daara-gold-light'
                         }`}>
                           {item.label}
                         </span>
@@ -226,7 +245,7 @@ export function Header({ currentPage, setPage }: HeaderProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                   onClick={handleInstall}
-                  className="w-full flex items-center justify-center gap-2 sm:gap-3 px-6 py-4 rounded-2xl bg-white/10 text-white font-sans font-bold text-base sm:text-lg hover:bg-white/20 transition-colors border border-white/20 backdrop-blur-md"
+                  className="w-full flex items-center justify-center gap-2 sm:gap-3 px-6 py-4 rounded-2xl bg-daara-text/5 text-daara-text font-sans font-bold text-base sm:text-lg hover:bg-daara-text/10 transition-colors border border-daara-text/10 backdrop-blur-md"
                 >
                   <Download className="w-5 h-5" />
                   <span>Installer l'application</span>
