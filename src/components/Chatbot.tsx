@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Loader2, User, Bot, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import Markdown from 'react-markdown';
 
 interface Message {
@@ -29,7 +29,7 @@ export function Chatbot() {
   useEffect(() => {
     if (!chatRef.current) {
       chatRef.current = ai.chats.create({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.1-flash-lite-preview',
         config: {
           systemInstruction: `Tu es "Guide Iqra", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
 Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.
@@ -43,6 +43,7 @@ RÈGLES IMPORTANTES :
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         }
       });
     }
