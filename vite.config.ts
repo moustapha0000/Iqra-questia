@@ -14,8 +14,8 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg'],
         manifest: {
-          name: 'e-Daara',
-          short_name: 'e-Daara',
+          name: 'Iqra Quest',
+          short_name: 'Iqra Quest',
           description: 'Plateforme d\'apprentissage islamique',
           theme_color: '#0a1910',
           background_color: '#0a1910',
