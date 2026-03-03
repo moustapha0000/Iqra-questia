@@ -29,9 +29,9 @@ export function Chatbot() {
   useEffect(() => {
     if (!chatRef.current) {
       chatRef.current = ai.chats.create({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.1-pro-preview',
         config: {
-          systemInstruction: `Tu es "L'Oustaz", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
+          systemInstruction: `Tu es "Guide Iqra", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
 Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.
 
 RÈGLES IMPORTANTES :
@@ -82,9 +82,32 @@ RÈGLES IMPORTANTES :
         throw new Error("Le chat n'a pas pu être initialisé.");
       }
 
-      const response = await chatRef.current.sendMessageStream({
-        message: userMessage
-      });
+      let response;
+      let retries = 3;
+      let delay = 1000;
+
+      while (retries > 0) {
+        try {
+          response = await chatRef.current.sendMessageStream({
+            message: userMessage
+          });
+          break; // Success, exit retry loop
+        } catch (error: any) {
+          if (error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('UNAVAILABLE')) {
+            retries--;
+            if (retries === 0) throw error;
+            console.warn(`API overloaded, retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2; // Exponential backoff
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      if (!response) {
+        throw new Error("Impossible d'obtenir une réponse après plusieurs tentatives.");
+      }
 
       // We don't set isLoading(false) here so the loader stays until the first chunk arrives
       let isFirstChunk = true;
@@ -108,9 +131,28 @@ RÈGLES IMPORTANTES :
       }
     } catch (error: any) {
       console.error("Chatbot error:", error);
+      let errorMessage = "Désolé, une erreur s'est produite. Veuillez vérifier votre connexion ou réessayer plus tard.";
+      
+      if (error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('UNAVAILABLE')) {
+        errorMessage = "Désolé, je suis actuellement très sollicité. Veuillez patienter quelques instants et réessayer.";
+      } else if (error?.message) {
+        // Try to parse JSON error message if it's a stringified JSON
+        try {
+          const parsed = JSON.parse(error.message);
+          if (parsed.error && parsed.error.message) {
+            const innerParsed = JSON.parse(parsed.error.message);
+            if (innerParsed.error && innerParsed.error.message) {
+               errorMessage = `Erreur: ${innerParsed.error.message}`;
+            }
+          }
+        } catch (e) {
+          errorMessage = `Erreur: ${error.message}`;
+        }
+      }
+
       setMessages((prev) => [
         ...prev,
-        { role: 'model', text: `Désolé, une erreur s'est produite: ${error.message || error}. Veuillez vérifier votre connexion ou réessayer plus tard.` },
+        { role: 'model', text: errorMessage },
       ]);
     } finally {
       setIsLoading(false);
@@ -215,7 +257,7 @@ RÈGLES IMPORTANTES :
                     </div>
                     <div className="p-4 rounded-2xl bg-daara-gold/10 border border-daara-gold/30 rounded-tl-sm flex items-center gap-2">
                       <Loader2 className="w-4 h-4 text-daara-gold animate-spin" />
-                      <span className="text-xs text-daara-gold">L'Oustaz écrit...</span>
+                      <span className="text-xs text-daara-gold">Guide Iqra écrit...</span>
                     </div>
                   </div>
                 </div>
@@ -244,7 +286,7 @@ RÈGLES IMPORTANTES :
                 </button>
               </div>
               <p className="text-[10px] text-center text-daara-text-muted mt-2">
-                L'Oustaz IA peut faire des erreurs. Consultez un savant pour les questions complexes.
+                Guide Iqra peut faire des erreurs. Consultez un savant pour les questions complexes.
               </p>
             </div>
           </motion.div>
