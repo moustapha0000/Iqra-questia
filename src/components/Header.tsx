@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle } from 'lucide-react';
+import { Menu, X, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle } from 'lucide-react';
 import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { Logo } from './Logo';
 
 interface HeaderProps {
   currentPage: PageType;
@@ -75,7 +76,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
               className="flex items-center gap-3 cursor-pointer group"
               onClick={() => handleNav('home')}
             >
-              <BookOpen className="w-7 h-7 text-daara-gold group-hover:text-daara-gold-light transition-colors" />
+              <Logo className="w-10 h-10 group-hover:scale-110 transition-transform duration-300" />
               <span className="font-serif text-3xl font-bold text-daara-text group-hover:text-daara-gold transition-colors">
                 Iqra Quest
               </span>

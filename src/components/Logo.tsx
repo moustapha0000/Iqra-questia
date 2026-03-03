@@ -1,0 +1,39 @@
+import React from 'react';
+
+interface LogoProps {
+  className?: string;
+}
+
+export function Logo({ className = "w-8 h-8" }: LogoProps) {
+  return (
+    <svg 
+      viewBox="0 0 512 512" 
+      className={className}
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F3E5AB" />
+          <stop offset="50%" stopColor="#D4AF37" />
+          <stop offset="100%" stopColor="#997A15" />
+        </linearGradient>
+      </defs>
+      
+      {/* 8-Pointed Star (Rub el Hizb) Base */}
+      <g stroke="url(#goldGradient)" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" fill="none">
+        <rect x="120" y="120" width="272" height="272" rx="48" transform="rotate(0 256 256)" />
+        <rect x="120" y="120" width="272" height="272" rx="48" transform="rotate(45 256 256)" />
+      </g>
+      
+      {/* Inner Book / Crescent Element */}
+      <path 
+        d="M 256 360 C 180 360 120 300 120 200 C 120 160 180 140 256 180 C 332 140 392 160 392 200 C 392 300 332 360 256 360 Z" 
+        fill="url(#goldGradient)" 
+      />
+      
+      {/* Center Diamond */}
+      <path d="M 256 110 L 280 140 L 256 170 L 232 140 Z" fill="url(#goldGradient)" />
+    </svg>
+  );
+}

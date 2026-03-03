@@ -1,11 +1,13 @@
 import React from 'react';
 import { Mail, Heart } from 'lucide-react';
+import { Logo } from './Logo';
 
 export function Footer() {
   return (
     <footer className="bg-daara-surface border-t border-daara-gold/10 py-12 mt-12">
       <div className="max-w-7xl mx-auto px-4 text-center">
-        <div className="mb-10">
+        <div className="mb-10 flex flex-col items-center">
+          <Logo className="w-16 h-16 mb-6 opacity-80" />
           <h3 className="text-2xl font-serif font-bold text-daara-gold mb-4">Soutenir Iqra Quest</h3>
           <p className="text-daara-text-muted max-w-xl mx-auto mb-6">
             Notre plateforme est gratuite et le restera. Si vous souhaitez nous aider à maintenir les serveurs et à créer plus de contenu, vous pouvez faire un don (Sadaqah Jariyah).

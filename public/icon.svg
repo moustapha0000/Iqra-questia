@@ -1,4 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#0a1910"/>
-  <path d="M256 100 A 150 150 0 1 0 406 250 A 120 120 0 1 1 256 100 Z" fill="#D4AF37"/>
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F3E5AB" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#997A15" />
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#112A1B" />
+      <stop offset="100%" stop-color="#0A1910" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="512" height="512" rx="112" fill="url(#bgGradient)"/>
+  
+  <!-- 8-Pointed Star (Rub el Hizb) Base -->
+  <g stroke="url(#goldGradient)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" fill="none">
+    <rect x="120" y="120" width="272" height="272" rx="48" transform="rotate(0 256 256)" />
+    <rect x="120" y="120" width="272" height="272" rx="48" transform="rotate(45 256 256)" />
+  </g>
+  
+  <!-- Inner Book / Crescent Element -->
+  <path 
+    d="M 256 360 C 180 360 120 300 120 200 C 120 160 180 140 256 180 C 332 140 392 160 392 200 C 392 300 332 360 256 360 Z" 
+    fill="url(#goldGradient)" 
+  />
+  
+  <!-- Center Diamond -->
+  <path d="M 256 110 L 280 140 L 256 170 L 232 140 Z" fill="url(#goldGradient)" />
 </svg>
