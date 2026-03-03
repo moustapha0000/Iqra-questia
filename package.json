@@ -37,6 +37,10 @@
   },
   "overrides": {
     "strip-ansi": "7.1.0",
-    "pump": "3.0.0"
+    "pump": "3.0.0",
+    "react-joyride": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
   }
 }

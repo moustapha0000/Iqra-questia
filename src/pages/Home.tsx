@@ -25,7 +25,7 @@ export function Home({ setPage }: HomeProps) {
       className="max-w-5xl mx-auto"
     >
       <div className="text-center mb-16 pt-12 relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] aspect-square bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none" />
         
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
@@ -93,9 +93,9 @@ export function Home({ setPage }: HomeProps) {
         })}
       </div>
 
-      <div className="text-center bg-daara-surface rounded-3xl p-8 md:p-16 shadow-2xl border border-daara-gold/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-daara-gold/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-daara-gold/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
+      <div id="quiz-section" className="text-center bg-daara-surface rounded-3xl p-8 md:p-16 shadow-2xl border border-daara-gold/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-full max-w-96 aspect-square bg-daara-gold/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-full max-w-96 aspect-square bg-daara-gold/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
         
         <div className="relative z-10">
           <HelpCircle className="w-16 h-16 text-daara-gold mx-auto mb-8" />

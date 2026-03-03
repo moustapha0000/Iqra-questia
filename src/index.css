@@ -52,6 +52,11 @@
   100% { opacity: 1; }
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   background-color: var(--color-daara-bg);
   color: var(--color-daara-text);

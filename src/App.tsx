@@ -73,7 +73,7 @@ export default function App() {
 
   if (currentPage === 'quiz') {
     return (
-      <div className="h-screen w-screen overflow-hidden font-sans selection:bg-daara-gold/30 selection:text-daara-bg relative bg-white sm:bg-gray-100">
+      <div className="h-screen w-full overflow-hidden font-sans selection:bg-daara-gold/30 selection:text-daara-bg relative bg-white sm:bg-gray-100">
         <Suspense fallback={<div className="flex items-center justify-center h-full w-full"><Loader2 className="w-10 h-10 animate-spin text-daara-gold" /></div>}>
           <IqraQuiz onBack={() => setPage('home')} />
         </Suspense>

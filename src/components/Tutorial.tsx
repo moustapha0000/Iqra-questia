@@ -11,33 +11,45 @@ export function Tutorial({ run, setRun }: TutorialProps) {
     {
       target: 'body',
       placement: 'center',
-      title: 'Bienvenue sur Iqra Quest !',
-      content: 'Découvrez comment utiliser notre plateforme d\'apprentissage islamique en quelques étapes simples.',
+      title: '✨ Bienvenue sur Iqra Quest !',
+      content: 'Découvrez comment utiliser notre plateforme d\'apprentissage islamique en quelques étapes simples. Laissez-vous guider !',
       disableBeacon: true,
     },
     {
       target: 'header',
-      title: 'Navigation Principale',
+      title: '🧭 Navigation Principale',
       content: 'Accédez facilement aux différentes sciences islamiques (Fiqh, Hadiths, etc.) depuis ce menu.',
-      disableBeacon: true,
+      disableBeacon: false,
     },
     {
       target: '.theme-toggle-btn',
-      title: 'Mode Clair / Sombre',
+      title: '🌓 Mode Clair / Sombre',
       content: 'Adaptez l\'affichage à votre préférence pour un confort de lecture optimal, de jour comme de nuit.',
-      disableBeacon: true,
+      disableBeacon: false,
     },
     {
       target: '#learning-categories',
-      title: 'Catégories d\'apprentissage',
+      title: '📚 Catégories d\'apprentissage',
       content: 'Sélectionnez un domaine pour commencer vos leçons vidéo et lire les supports de cours.',
-      disableBeacon: true,
+      disableBeacon: false,
+    },
+    {
+      target: '#quiz-section',
+      title: '📝 Quiz Interactif',
+      content: 'Testez vos connaissances ! Si vous bloquez sur une question, n\'hésitez pas à demander de l\'aide au Guide IA.',
+      disableBeacon: false,
     },
     {
       target: '#chatbot-toggle',
-      title: 'Guide IA Iqra',
+      title: '🤖 Guide IA Iqra',
       content: 'Une question ? Notre assistant virtuel est disponible 24h/24 pour vous aider dans vos recherches.',
-      disableBeacon: true,
+      disableBeacon: false,
+    },
+    {
+      target: '#chatbot-toggle',
+      title: '📸 Analyse Intelligente',
+      content: 'Ouvrez le Guide IA pour analyser des images, des vidéos ou le contenu de la page actuelle. Il peut vous expliquer des textes complexes ou des quiz !',
+      disableBeacon: false,
     }
   ];
 
