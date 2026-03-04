@@ -54,12 +54,13 @@ export function Tutorial({ run, setRun }: TutorialProps) {
   ];
 
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status } = data;
-    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+    const { status, action } = data;
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED, 'error' as any];
     
-    if (finishedStatuses.includes(status)) {
+    if (finishedStatuses.includes(status) || action === 'close') {
       setRun(false);
       localStorage.setItem('tutorialCompleted', 'true');
+      document.body.style.overflow = ''; // Failsafe to restore scrolling
     }
   };
 

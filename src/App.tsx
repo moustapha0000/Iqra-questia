@@ -28,6 +28,13 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!runTutorial) {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+  }, [runTutorial]);
+
   // Handle hash routing
   useEffect(() => {
     const handleHashChange = () => {
@@ -84,7 +91,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-sans selection:bg-daara-gold/30 selection:text-daara-bg overflow-x-hidden">
+    <div className="min-h-screen flex flex-col font-sans selection:bg-daara-gold/30 selection:text-daara-bg">
       <Tutorial run={runTutorial} setRun={setRunTutorial} />
       <Header currentPage={currentPage} setPage={setPage} startTutorial={() => setRunTutorial(true)} />
       
