@@ -27,18 +27,6 @@ export function Home({ setPage }: HomeProps) {
     >
       <div className="text-center mb-16 pt-12 relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] aspect-square bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none" />
-        
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex justify-center mb-8 relative z-10"
-        >
-          <div className="relative">
-            <div className="absolute inset-0 bg-daara-gold/20 blur-2xl rounded-full" />
-            <Logo className="w-24 h-24 drop-shadow-2xl relative z-10" />
-          </div>
-        </motion.div>
 
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}

@@ -1,30 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F3E5AB" />
-      <stop offset="50%" stop-color="#D4AF37" />
-      <stop offset="100%" stop-color="#997A15" />
+    <linearGradient id="goldGradMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fcebbb" />
+      <stop offset="50%" stop-color="#e5b85c" />
+      <stop offset="100%" stop-color="#ca8a04" />
     </linearGradient>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#112A1B" />
-      <stop offset="100%" stop-color="#0A1910" />
+    <linearGradient id="goldGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e5b85c" />
+      <stop offset="100%" stop-color="#854d0e" />
     </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1a11" />
+      <stop offset="100%" stop-color="#05100a" />
+    </linearGradient>
+    <filter id="glowLogo" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
   </defs>
-  
-  <rect width="512" height="512" rx="112" fill="url(#bgGradient)"/>
-  
-  <!-- 8-Pointed Star (Rub el Hizb) Base -->
-  <g stroke="url(#goldGradient)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" fill="none">
-    <rect x="120" y="120" width="272" height="272" rx="48" transform="rotate(0 256 256)" />
-    <rect x="120" y="120" width="272" height="272" rx="48" transform="rotate(45 256 256)" />
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bgGrad)" rx="112" />
+
+  <g transform="translate(256, 256)" filter="url(#glowLogo)">
+    <!-- Outer decorative dashed ring -->
+    <circle cx="0" cy="0" r="230" fill="none" stroke="url(#goldGradDark)" stroke-width="3" stroke-dasharray="8 8" opacity="0.7" />
+    <circle cx="0" cy="0" r="242" fill="none" stroke="url(#goldGradMain)" stroke-width="1" opacity="0.5" />
+
+    <!-- 16-pointed complex star background (4 squares) -->
+    <g stroke="url(#goldGradDark)" stroke-width="2" opacity="0.5">
+      <rect x="-160" y="-160" width="320" height="320" rx="16" />
+      <rect x="-160" y="-160" width="320" height="320" rx="16" transform="rotate(22.5)" />
+      <rect x="-160" y="-160" width="320" height="320" rx="16" transform="rotate(45)" />
+      <rect x="-160" y="-160" width="320" height="320" rx="16" transform="rotate(67.5)" />
+    </g>
+
+    <!-- 8-pointed primary star (2 squares) -->
+    <g stroke="url(#goldGradMain)" stroke-width="6" fill="rgba(10, 26, 17, 0.6)">
+      <rect x="-125" y="-125" width="250" height="250" rx="12" />
+      <rect x="-125" y="-125" width="250" height="250" rx="12" transform="rotate(45)" />
+    </g>
+
+    <!-- Inner 8-pointed star (offset) -->
+    <g stroke="url(#goldGradMain)" stroke-width="3" fill="none">
+      <rect x="-90" y="-90" width="180" height="180" rx="8" transform="rotate(22.5)" />
+      <rect x="-90" y="-90" width="180" height="180" rx="8" transform="rotate(67.5)" />
+    </g>
+
+    <!-- Center Emblem Shield/Circle -->
+    <circle cx="0" cy="0" r="85" fill="#05100a" stroke="url(#goldGradMain)" stroke-width="4" />
+    <circle cx="0" cy="0" r="75" fill="none" stroke="url(#goldGradDark)" stroke-width="2" stroke-dasharray="4 4" />
+
+    <!-- Arabic Text "اقرأ" -->
+    <text x="0" y="30" font-family="'Amiri', 'Traditional Arabic', serif" font-size="85" font-weight="bold" text-anchor="middle" fill="url(#goldGradMain)">اقرأ</text>
+    
+    <!-- Small decorative dots around the text -->
+    <circle cx="0" cy="-50" r="4" fill="url(#goldGradMain)" />
+    <circle cx="0" cy="58" r="4" fill="url(#goldGradMain)" />
+    <circle cx="-54" cy="4" r="4" fill="url(#goldGradMain)" />
+    <circle cx="54" cy="4" r="4" fill="url(#goldGradMain)" />
   </g>
-  
-  <!-- Inner Book / Crescent Element -->
-  <path 
-    d="M 256 360 C 180 360 120 300 120 200 C 120 160 180 140 256 180 C 332 140 392 160 392 200 C 392 300 332 360 256 360 Z" 
-    fill="url(#goldGradient)" 
-  />
-  
-  <!-- Center Diamond -->
-  <path d="M 256 110 L 280 140 L 256 170 L 232 140 Z" fill="url(#goldGradient)" />
 </svg>

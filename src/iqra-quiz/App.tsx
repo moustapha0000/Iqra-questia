@@ -411,7 +411,12 @@ const PathScreen = ({ units, userState, onSelectUnit, onOpenShop, t, onBack }: a
 
 // --- SCREENS SECONDAIRES ---
 
-const SuccessScreen = ({ onContinue, gemsEarned, t }: any) => {
+const SuccessScreen = ({ onContinue, gemsEarned, t, unitTitle }: any) => {
+    const handleShare = () => {
+        const text = `MashaAllah! I just completed "${unitTitle}" on Iqra Quest and earned ${gemsEarned} gems! Can you beat my score? 🕌✨\n\nPlay now: ${window.location.origin}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    };
+
     return (
         <div className="fixed inset-0 z-50 bg-[#059669] flex flex-col items-center justify-center animate-fade-in text-white p-6 overflow-hidden">
             <Confetti />
@@ -428,9 +433,15 @@ const SuccessScreen = ({ onContinue, gemsEarned, t }: any) => {
                     </div>
                 </div>
             </div>
-            <Button3D variant="secondary" onClick={onContinue} className="w-full max-w-xs py-4 text-[#059669] text-xl z-10 relative">
-                {t('continue')}
-            </Button3D>
+            <div className="flex flex-col gap-4 w-full max-w-xs z-10 relative">
+                <Button3D variant="secondary" onClick={onContinue} className="w-full py-4 text-[#059669] text-xl">
+                    {t('continue')}
+                </Button3D>
+                <button onClick={handleShare} className="w-full py-3 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+                    Share on WhatsApp
+                </button>
+            </div>
         </div>
     );
 }
@@ -570,7 +581,7 @@ const LessonScreen = ({ unit, onClose, onFinishLesson, onWrongAnswer, onRefillHe
   const handleRetry = () => { setShowGameOver(false); if (onRefillHearts) onRefillHearts(); };
 
   if (isStarting) return <div className="fixed inset-0 z-50 bg-[#059669] flex items-center justify-center flex-col animate-fade-out pointer-events-none"><h2 className={`text-5xl font-bold text-white mb-4 animate-bounce ${isArabic ? 'font-arabic' : ''}`}>{unit.title}</h2></div>;
-  if (isLessonComplete) return <SuccessScreen gemsEarned={15} onContinue={() => onFinishLesson(15)} t={t} />;
+  if (isLessonComplete) return <SuccessScreen gemsEarned={15} onContinue={() => onFinishLesson(15)} t={t} unitTitle={unit.title} />;
   if (!currentQ) return <div className="p-10 text-center">Loading...</div>;
 
   const renderQuestionContent = () => {
@@ -691,6 +702,11 @@ const LessonScreen = ({ unit, onClose, onFinishLesson, onWrongAnswer, onRefillHe
 };
 
 const ProfileScreen = ({ userState, toggleSound, setLanguage, t, onOpenLegal, onBackup, onRestore, onReset, onBack }: any) => {
+  const handleShare = () => {
+      const text = `I'm learning Islam on Iqra Quest! I'm on Level ${userState.level} with a ${userState.streak} day streak 🔥. Join me! 🕌✨\n\nPlay now: ${window.location.origin}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   return (
     <div className="flex-1 overflow-y-auto bg-stone-50 pb-24 no-scrollbar relative">
       {onBack && (
@@ -751,6 +767,15 @@ const ProfileScreen = ({ userState, toggleSound, setLanguage, t, onOpenLegal, on
                   </div>
               </div>
 
+              {/* SHARE SECTION */}
+               <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+                  <span className="font-bold text-gray-700 block mb-3">Invite Friends</span>
+                  <button onClick={handleShare} className="w-full py-3 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+                      Share on WhatsApp
+                  </button>
+              </div>
+
               {/* BACKUP & RESTORE SECTION */}
                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 space-y-3">
                   <span className="font-bold text-gray-700 block">{t('backup')}</span>
@@ -771,7 +796,7 @@ const ProfileScreen = ({ userState, toggleSound, setLanguage, t, onOpenLegal, on
               </div>
 
               <button onClick={onOpenLegal} className="w-full text-center text-gray-400 text-sm font-bold hover:underline py-4 flex items-center justify-center gap-2">
-                  <Icons.FileText className="w-4 h-4" /> {t('legal')}
+                  <Icons.FileText className="w-4 h-4" /> About & Support
               </button>
           </div>
       </div>
@@ -807,16 +832,28 @@ const ShopModal = ({ isOpen, onClose, userState, onBuyHearts, onBuyFreeze, onOpe
     );
 };
 
-const LegalModal = ({ isOpen, onClose, t }: any) => {
+const AboutModal = ({ isOpen, onClose, t }: any) => {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
              <div className="bg-white w-full max-w-lg rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[80vh]">
-                <h2 className="text-2xl font-extrabold mb-4">{t('legal')}</h2>
-                <div className="prose prose-sm text-gray-600 mb-6">
-                    <p><strong>Privacy Policy:</strong> This application does not collect any personal data. All progress is stored locally on your device. We use no cookies for tracking purposes.</p>
-                    <p className="mt-2"><strong>Terms of Use:</strong> This app is for educational purposes. While we strive for accuracy in religious content, please consult scholars for fatwas.</p>
-                    <p className="mt-2 text-xs text-gray-400">Version 1.0.0 - SalamPath</p>
+                <h2 className="text-2xl font-extrabold mb-4">About & Support</h2>
+                <div className="prose prose-sm text-gray-600 mb-6 space-y-4">
+                    <div>
+                        <h3 className="font-bold text-lg text-gray-800">About Iqra Quest</h3>
+                        <p>Iqra Quest is a gamified Islamic learning platform designed to make learning about Islam engaging, accessible, and fun for everyone. Built with ❤️ in Senegal.</p>
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg text-gray-800">Support & Contact</h3>
+                        <p>Need help or want to report an issue? Have suggestions for new content? We'd love to hear from you!</p>
+                        <a href="mailto:support@iqraquest.com" className="text-[#059669] font-bold hover:underline block mt-1">support@iqraquest.com</a>
+                    </div>
+                    <div className="pt-4 border-t border-gray-100">
+                        <h3 className="font-bold text-lg text-gray-800">Legal</h3>
+                        <p className="mt-1"><strong>Privacy Policy:</strong> This application does not collect any personal data. All progress is stored locally on your device. We use no cookies for tracking purposes.</p>
+                        <p className="mt-2"><strong>Terms of Use:</strong> This app is for educational purposes. While we strive for accuracy in religious content, please consult scholars for fatwas.</p>
+                    </div>
+                    <p className="mt-4 text-xs text-gray-400 text-center">Version 1.0.0 - Iqra Quest</p>
                 </div>
                 <Button3D variant="primary" onClick={onClose} fullWidth>Close</Button3D>
              </div>
@@ -827,19 +864,13 @@ const LegalModal = ({ isOpen, onClose, t }: any) => {
 const WelcomeScreen = ({ onStart, t, setLanguage }: any) => {
     return (
         <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 text-center animate-fade-in">
-             <div className="mb-8 relative">
-                 <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center animate-pulse-slow">
-                     <span className="text-6xl">🕌</span>
-                 </div>
-                 <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-white font-bold px-3 py-1 rounded-full shadow-lg text-xs transform rotate-12">BETA</div>
-             </div>
-             <h1 className="text-4xl font-extrabold text-gray-800 mb-2 font-arabic">SalamPath</h1>
+             <h1 className="text-4xl font-extrabold text-gray-800 mb-2 font-arabic">Iqra Quest</h1>
              <p className="text-gray-500 text-lg mb-10 max-w-xs">{t('welcomeDesc')}</p>
 
              <div className="flex gap-4 mb-8">
                 {['fr', 'en', 'ar'].map((lang: any) => (
                     <button key={lang} onClick={() => setLanguage(lang)} className="text-2xl hover:scale-125 transition-transform p-2">
-                        {lang === 'fr' ? '🇫🇷' : lang === 'en' ? '🇺🇸' : '🇸🇦'}
+                        {lang === 'fr' ? '🇫🇷' : lang === 'en' ? '🇬🇧' : '🇸🇦'}
                     </button>
                 ))}
              </div>
@@ -868,12 +899,12 @@ export default function App({ onBack }: { onBack?: () => void }) {
 
   const [userState, setUserState] = useState<UserState>(() => {
     try {
-        const saved = localStorage.getItem('salamPathState');
+        const saved = localStorage.getItem('iqraQuestState');
         if (saved) {
             const parsed = JSON.parse(saved);
             // Migration check
-            if (typeof parsed.hasSeenOnboarding === 'undefined') parsed.hasSeenOnboarding = true;
-            if(parsed.currentUnitId > 12) parsed.currentUnitId = 12;
+            if (typeof parsed.hasSeenOnboarding === 'undefined') parsed.hasSeenOnboarding = false;
+            if(parsed.currentUnitId > 30) parsed.currentUnitId = 30;
             return parsed;
         }
     } catch (e) {}
@@ -887,11 +918,11 @@ export default function App({ onBack }: { onBack?: () => void }) {
      document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
   }, [isArabic]);
   
-  useEffect(() => { localStorage.setItem('salamPathState', JSON.stringify(userState)); }, [userState]);
+  useEffect(() => { localStorage.setItem('iqraQuestState', JSON.stringify(userState)); }, [userState]);
   const currentUnits = useMemo(() => getUnitsForLanguage(userState.language), [userState.language]);
   
   const handleUnitSelect = (unit: Unit) => { 
-      if (unit.id > 12) return;
+      if (unit.id > 30) return;
       setActiveUnit(unit); 
       setCurrentScreen('LESSON'); 
   };
@@ -899,7 +930,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
   const handleFinishLesson = (gemsEarned: number) => {
     if (activeUnit) {
         const nextId = activeUnit.id + 1;
-        const effectiveNextId = nextId > 12 ? 12 : nextId;
+        const effectiveNextId = nextId > 30 ? 30 : nextId;
         let questGems = 0;
         const updatedQuests = userState.dailyQuests.map(q => {
             if (q.completed) return q;
@@ -918,7 +949,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userState));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "salam_backup_" + new Date().toISOString() + ".json");
+    downloadAnchorNode.setAttribute("download", "iqra_backup_" + new Date().toISOString() + ".json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -978,7 +1009,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
             </div>
       )}
       {currentScreen === 'PATH' && <ShopModal isOpen={showShop} onClose={() => setShowShop(false)} userState={userState} onBuyFreeze={() => { if(userState.gems>=200){setUserState(p=>({...p,gems:p.gems-200,streakFreeze:p.streakFreeze+1}));playSound('BUY',true);} }} onOpenPremium={() => {}} t={t} />}
-      <LegalModal isOpen={showLegal} onClose={() => setShowLegal(false)} t={t} />
+      <AboutModal isOpen={showLegal} onClose={() => setShowLegal(false)} t={t} />
       {currentScreen === 'LESSON' && activeUnit && <LessonScreen unit={activeUnit} onClose={() => setCurrentScreen('PATH')} onFinishLesson={handleFinishLesson} onWrongAnswer={() => {}} soundEnabled={userState.settings.soundEnabled} isPremium={userState.isPremium} t={t} isArabic={isArabic} />}
     </div>
   );
