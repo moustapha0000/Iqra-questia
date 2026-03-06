@@ -49,7 +49,7 @@ export function About() {
             Vous avez des questions spécifiques ou vous souhaitez des cours particuliers ? Notre équipe est à votre disposition.
           </p>
           <a 
-            href="mailto:contact@iqraquest.com" 
+            href="mailto:iqraquest2.0@gmail.com" 
             className="inline-flex items-center gap-3 bg-gradient-to-r from-daara-gold to-daara-gold-light text-daara-bg px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg shadow-daara-gold/20"
           >
             <Mail className="w-6 h-6" />

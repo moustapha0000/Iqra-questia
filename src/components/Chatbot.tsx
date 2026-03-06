@@ -34,7 +34,7 @@ export function Chatbot() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Gemini API
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY });
 
   const systemInstruction = `Tu es "Guide Iqra", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
 Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.

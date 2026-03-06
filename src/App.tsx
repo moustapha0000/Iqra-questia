@@ -6,7 +6,7 @@ import { Home } from './pages/Home';
 import { VideoSection } from './pages/VideoSection';
 import { About } from './pages/About';
 import { Chatbot } from './components/Chatbot';
-import { Tutorial } from './components/Tutorial';
+
 import { playlists } from './data';
 import { AnimatePresence } from 'motion/react';
 import { MessageCircle, Loader2 } from 'lucide-react';
@@ -15,25 +15,6 @@ const IqraQuiz = React.lazy(() => import('./iqra-quiz/App'));
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
-  const [runTutorial, setRunTutorial] = useState(false);
-
-  useEffect(() => {
-    // Auto-start tutorial if not completed
-    const tutorialCompleted = localStorage.getItem('tutorialCompleted');
-    if (!tutorialCompleted) {
-      // Small delay to ensure components are mounted
-      setTimeout(() => {
-        setRunTutorial(true);
-      }, 1000);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!runTutorial) {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-  }, [runTutorial]);
 
   // Handle hash routing
   useEffect(() => {
@@ -92,8 +73,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-daara-gold/30 selection:text-daara-bg">
-      <Tutorial run={runTutorial} setRun={setRunTutorial} />
-      <Header currentPage={currentPage} setPage={setPage} startTutorial={() => setRunTutorial(true)} />
+      <Header currentPage={currentPage} setPage={setPage} />
       
       <main className="flex-grow px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
         <AnimatePresence mode="wait">

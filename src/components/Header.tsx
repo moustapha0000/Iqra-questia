@@ -52,18 +52,19 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
     }
   };
 
-  const navItems: { id: PageType; label: string; icon: React.ElementType }[] = [
+  const navItems: { id: PageType | 'quiz'; label: string; icon: React.ElementType }[] = [
     { id: 'home', label: 'Accueil', icon: Home },
     { id: 'fondements', label: 'Fondements', icon: BookOpen },
     { id: 'piliers', label: 'Piliers', icon: Star },
     { id: 'fiqh', label: 'Fiqh', icon: BookText },
     { id: 'hadiths', label: 'Hadiths', icon: MessageCircle },
     { id: 'burdah', label: 'Burdah', icon: Heart },
+    { id: 'quiz', label: 'Quiz', icon: HelpCircle },
     { id: 'apropos', label: 'À propos', icon: Info },
   ];
 
-  const handleNav = (id: PageType) => {
-    setPage(id);
+  const handleNav = (id: PageType | 'quiz') => {
+    setPage(id as PageType);
     setIsMobileMenuOpen(false);
   };
 

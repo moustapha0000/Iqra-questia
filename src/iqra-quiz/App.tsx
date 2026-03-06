@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Unit, Question, UserState, Language } from './types';
 import { getUnitsForLanguage } from './data';
 import { getT } from './translations';
+import { Logo } from '../components/Logo';
 
 // --- HOOKS & UTILS ---
 
@@ -864,6 +865,7 @@ const AboutModal = ({ isOpen, onClose, t }: any) => {
 const WelcomeScreen = ({ onStart, t, setLanguage }: any) => {
     return (
         <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+             <Logo className="w-24 h-24 mb-6" />
              <h1 className="text-4xl font-extrabold text-gray-800 mb-2 font-arabic">Iqra Quest</h1>
              <p className="text-gray-500 text-lg mb-10 max-w-xs">{t('welcomeDesc')}</p>
 
