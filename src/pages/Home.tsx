@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { PageType } from '../types';
-import { BookOpen, PlayCircle, BookText, Heart, Star, HelpCircle, Info, MessageCircle } from 'lucide-react';
+import { BookOpen, PlayCircle, BookText, Heart, Star, HelpCircle, Info, MessageCircle, Users } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
 interface HomeProps {
@@ -10,11 +10,12 @@ interface HomeProps {
 
 export function Home({ setPage }: HomeProps) {
   const cards = [
-    { id: 'fondements', title: 'Fondements', icon: BookOpen, desc: 'Tafsiroul Quràn' },
-    { id: 'piliers', title: 'Piliers', icon: Star, desc: 'Al Akhdari (Pratique)' },
-    { id: 'fiqh', title: 'Fiqh', icon: BookText, desc: 'Fiqh Tariqha Tidiàn' },
-    { id: 'hadiths', title: 'Hadiths', icon: MessageCircle, desc: 'Biographie du Prophète ﷺ' },
-    { id: 'burdah', title: 'Burdah', icon: Heart, desc: 'Cheikh Ahmed Tidiàn Cherif' },
+    { id: 'fondements', title: 'Fondements', icon: BookOpen, desc: 'La croyance (\'Aqida)' },
+    { id: 'piliers', title: 'Piliers', icon: Star, desc: 'La pratique (Al-Ibadat)' },
+    { id: 'fiqh', title: 'Fiqh', icon: BookText, desc: 'Les règles du quotidien' },
+    { id: 'hadiths', title: 'Hadiths', icon: MessageCircle, desc: 'Paroles du Prophète ﷺ' },
+    { id: 'prophetes', title: 'Prophètes', icon: Users, desc: 'Histoires et leçons de vie' },
+    { id: 'burdah', title: 'Spiritualité', icon: Heart, desc: 'Amour du Prophète ﷺ' },
     { id: 'apropos', title: 'À propos', icon: Info, desc: 'Notre mission' },
   ];
 
