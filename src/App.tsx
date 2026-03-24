@@ -5,7 +5,6 @@ import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
 import { VideoSection } from './pages/VideoSection';
 import { About } from './pages/About';
-import { Profile } from './pages/Profile';
 import { Chatbot } from './components/Chatbot';
 
 import { playlists } from './data';
@@ -21,7 +20,7 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '') as PageType;
-      if (hash && ['home', 'fondements', 'piliers', 'fiqh', 'hadiths', 'burdah', 'prophetes', 'apropos', 'quiz', 'profile'].includes(hash)) {
+      if (hash && ['home', 'fondements', 'piliers', 'fiqh', 'hadiths', 'burdah', 'prophetes', 'apropos', 'quiz'].includes(hash)) {
         setCurrentPage(hash);
       } else {
         setCurrentPage('home');
@@ -46,8 +45,6 @@ export default function App() {
         return <Home setPage={setPage} />;
       case 'apropos':
         return <About />;
-      case 'profile':
-        return <Profile />;
       case 'quiz':
         return (
           <Suspense fallback={<div className="flex items-center justify-center h-full w-full py-20"><Loader2 className="w-8 h-8 animate-spin text-daara-gold" /></div>}>

@@ -5,7 +5,7 @@ import { getT } from './translations';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
 // --- HOOKS & UTILS ---
 
@@ -705,7 +705,98 @@ const LessonScreen = ({ unit, onClose, onFinishLesson, onWrongAnswer, onRefillHe
   );
 };
 
+const QuizLeaderboard = ({ t }: { t: any }) => {
+  const [scores, setScores] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'quiz_scores'),
+      orderBy('score', 'desc'),
+      limit(10)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newScores: any[] = [];
+      snapshot.forEach((doc) => {
+        newScores.push({ id: doc.id, ...doc.data() });
+      });
+      setScores(newScores);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'quiz_scores');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Icons.Crown className="w-6 h-6 text-amber-500" />
+        <span className="font-bold text-gray-700">Classement Global</span>
+      </div>
+      
+      {scores.length === 0 ? (
+        <p className="text-gray-400 text-center py-4 text-sm">Aucun score pour le moment.</p>
+      ) : (
+        <div className="space-y-3">
+          {scores.map((score, index) => (
+            <div 
+              key={score.id}
+              className={`flex items-center justify-between p-3 rounded-xl border-2 ${
+                index === 0 ? 'bg-amber-50 border-amber-200' :
+                index === 1 ? 'bg-gray-50 border-gray-200' :
+                index === 2 ? 'bg-orange-50 border-orange-200' :
+                'bg-white border-gray-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-6 text-center font-bold ${
+                  index === 0 ? 'text-amber-500' :
+                  index === 1 ? 'text-gray-400' :
+                  index === 2 ? 'text-orange-500' :
+                  'text-gray-400'
+                }`}>
+                  {index + 1}
+                </div>
+                {score.playerPhoto ? (
+                  <img src={score.playerPhoto} alt={score.playerName} className="w-8 h-8 rounded-full border border-gray-200" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-sm">
+                    {score.playerName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <span className="font-bold text-gray-700 text-sm">{score.playerName}</span>
+                  <span className="text-[10px] text-gray-400 capitalize">{score.difficulty}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-extrabold text-amber-500">{score.score}</span>
+                <Icons.Gem className="w-4 h-4 text-amber-500" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ProfileScreen = ({ userState, toggleSound, setLanguage, t, onOpenLegal, onBackup, onRestore, onReset, onBack }: any) => {
+  const { user, signInWithGoogle, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<'stats' | 'leaderboard'>('stats');
+
   const handleShare = () => {
       const text = `I'm learning Islam on Iqra Quest! I'm on Level ${userState.level} with a ${userState.streak} day streak 🔥. Join me! 🕌✨\n\nPlay now: ${window.location.origin}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
@@ -722,30 +813,68 @@ const ProfileScreen = ({ userState, toggleSound, setLanguage, t, onOpenLegal, on
       )}
       <div className="bg-white border-b-2 border-gray-200 pb-8 pt-12 px-6 flex flex-col items-center">
          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-4xl font-bold text-gray-300 border-4 border-dashed border-gray-300 mb-4 relative overflow-hidden">
-             <Icons.Avatar className="w-20 h-20 text-gray-300" />
+             {user?.photoURL ? (
+               <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+             ) : (
+               <Icons.Avatar className="w-20 h-20 text-gray-300" />
+             )}
          </div>
-         <h1 className="text-2xl font-extrabold text-gray-800 mb-1">{t('student')}</h1>
+         <h1 className="text-2xl font-extrabold text-gray-800 mb-1">{user?.displayName || t('student')}</h1>
          <p className="text-gray-400 font-medium text-sm mb-6">Level {userState.level}</p>
+         
+         {!user && (
+           <div className="mb-6">
+             <Button3D variant="primary" onClick={signInWithGoogle} className="text-sm py-2 px-4 flex items-center gap-2">
+               Se connecter pour le classement
+             </Button3D>
+           </div>
+         )}
+
          <div className="w-full h-[1px] bg-gray-100 mb-6"></div>
-         <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-             <div className="bg-white border-2 border-gray-100 rounded-2xl p-4 flex flex-col items-center shadow-sm">
-                 <div className="flex items-center gap-2 mb-1">
-                     <Icons.Fire className="w-6 h-6 text-orange-500" />
-                     <span className="font-extrabold text-xl text-gray-700">{userState.streak}</span>
-                 </div>
-                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{t('streak')}</span>
-             </div>
-             <div className="bg-white border-2 border-gray-100 rounded-2xl p-4 flex flex-col items-center shadow-sm">
-                 <div className="flex items-center gap-2 mb-1">
-                     <Icons.Bolt className="w-6 h-6 text-yellow-500" />
-                     <span className="font-extrabold text-xl text-gray-700">{userState.xp}</span>
-                 </div>
-                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{t('xp')}</span>
-             </div>
+         
+         {/* Tabs */}
+         <div className="flex w-full max-w-sm bg-gray-100 p-1 rounded-2xl mb-6">
+           <button
+             onClick={() => setActiveTab('stats')}
+             className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all ${activeTab === 'stats' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+           >
+             Statistiques
+           </button>
+           <button
+             onClick={() => setActiveTab('leaderboard')}
+             className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all ${activeTab === 'leaderboard' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+           >
+             Classement
+           </button>
          </div>
+
+         {activeTab === 'stats' && (
+           <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+               <div className="bg-white border-2 border-gray-100 rounded-2xl p-4 flex flex-col items-center shadow-sm">
+                   <div className="flex items-center gap-2 mb-1">
+                       <Icons.Fire className="w-6 h-6 text-orange-500" />
+                       <span className="font-extrabold text-xl text-gray-700">{userState.streak}</span>
+                   </div>
+                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{t('streak')}</span>
+               </div>
+               <div className="bg-white border-2 border-gray-100 rounded-2xl p-4 flex flex-col items-center shadow-sm">
+                   <div className="flex items-center gap-2 mb-1">
+                       <Icons.Bolt className="w-6 h-6 text-yellow-500" />
+                       <span className="font-extrabold text-xl text-gray-700">{userState.xp}</span>
+                   </div>
+                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{t('xp')}</span>
+               </div>
+           </div>
+         )}
       </div>
 
       <div className="p-6 max-w-md mx-auto space-y-6">
+          {activeTab === 'leaderboard' && (
+            <div className="mb-8">
+              <QuizLeaderboard t={t} />
+            </div>
+          )}
+
           <div className="space-y-4">
               <h2 className="font-bold text-xl text-gray-800">{t('settings')}</h2>
               
@@ -770,6 +899,15 @@ const ProfileScreen = ({ userState, toggleSound, setLanguage, t, onOpenLegal, on
                       ))}
                   </div>
               </div>
+
+              {user && (
+                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+                    <span className="font-bold text-gray-700 block mb-3">Compte Google</span>
+                    <Button3D variant="secondary" onClick={logout} fullWidth className="text-sm py-3">
+                        Se déconnecter
+                    </Button3D>
+                </div>
+              )}
 
               {/* SHARE SECTION */}
                <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">

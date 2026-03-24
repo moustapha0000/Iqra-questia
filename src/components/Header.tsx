@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User } from 'lucide-react';
 import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
@@ -16,6 +16,18 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const { user, signInWithGoogle, logout } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.user-menu-container')) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     // Check local storage or system preference on mount
@@ -63,7 +75,6 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
     { id: 'burdah', label: 'Burdah', icon: Heart },
     { id: 'prophetes', label: 'Prophètes', icon: Users },
     { id: 'quiz', label: 'Quiz', icon: HelpCircle },
-    { id: 'profile', label: 'Classement', icon: Trophy },
     { id: 'apropos', label: 'À propos', icon: Info },
   ];
 
@@ -129,28 +140,71 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
                 </button>
               )}
               {user ? (
-                <div className="flex items-center gap-3 ml-4 pl-4 border-l border-daara-gold/20">
+                <div className="relative ml-4 pl-4 border-l border-daara-gold/20 user-menu-container">
                   <button 
-                    onClick={() => setPage('profile')}
-                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-                    title="Mon Espace"
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none"
+                    title="Menu Utilisateur"
                   >
                     {user.photoURL ? (
-                      <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-daara-gold/50" />
+                      <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full border-2 border-daara-gold/50 shadow-sm" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-daara-gold/20 flex items-center justify-center text-daara-gold font-bold text-sm border border-daara-gold/50">
+                      <div className="w-10 h-10 rounded-full bg-daara-gold/20 flex items-center justify-center text-daara-gold font-bold text-sm border-2 border-daara-gold/50 shadow-sm">
                         {user.displayName?.charAt(0).toUpperCase() || 'U'}
                       </div>
                     )}
-                    <span className="text-sm font-medium text-daara-text hidden lg:block">{user.displayName?.split(' ')[0]}</span>
                   </button>
-                  <button
-                    onClick={logout}
-                    className="p-2 text-daara-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
-                    title="Se déconnecter"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
+
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-3 w-56 bg-daara-surface border border-daara-gold/20 rounded-2xl shadow-xl overflow-hidden z-50"
+                      >
+                        <div className="p-4 border-b border-daara-gold/10 bg-daara-bg/50">
+                          <p className="text-sm font-bold text-daara-text truncate">{user.displayName}</p>
+                          <p className="text-xs text-daara-text-muted truncate">{user.email}</p>
+                        </div>
+                        <div className="p-2">
+                          <button
+                            onClick={() => {
+                              setPage('quiz');
+                              setIsUserMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-daara-text hover:text-daara-gold hover:bg-daara-gold/10 rounded-xl transition-colors"
+                          >
+                            <User className="w-4 h-4" />
+                            Profil Quiz
+                          </button>
+                          <button
+                            onClick={() => {
+                              setPage('quiz');
+                              setIsUserMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-daara-text hover:text-daara-gold hover:bg-daara-gold/10 rounded-xl transition-colors"
+                          >
+                            <Trophy className="w-4 h-4" />
+                            Classement Quiz
+                          </button>
+                        </div>
+                        <div className="p-2 border-t border-daara-gold/10">
+                          <button
+                            onClick={() => {
+                              logout();
+                              setIsUserMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Se déconnecter
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ) : (
                 <button
@@ -240,26 +294,45 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 relative z-10 pb-6 scrollbar-hide">
               <div className="flex flex-col gap-2 sm:gap-4 mt-2">
                 {user ? (
-                  <div className="flex items-center justify-between p-4 mb-2 bg-daara-surface rounded-2xl border border-daara-gold/20">
-                    <button 
-                      onClick={() => { setPage('profile'); setIsMobileMenuOpen(false); }}
-                      className="flex items-center gap-3 text-left w-full"
-                    >
-                      {user.photoURL ? (
-                        <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full border border-daara-gold/50" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-daara-gold/20 flex items-center justify-center text-daara-gold font-bold text-lg border border-daara-gold/50">
-                          {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                  <div className="bg-daara-surface rounded-2xl border border-daara-gold/20 mb-2 overflow-hidden">
+                    <div className="flex items-center justify-between p-4 border-b border-daara-gold/10">
+                      <div className="flex items-center gap-3 text-left">
+                        {user.photoURL ? (
+                          <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full border border-daara-gold/50" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-daara-gold/20 flex items-center justify-center text-daara-gold font-bold text-lg border border-daara-gold/50">
+                            {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-bold text-daara-text">{user.displayName}</p>
+                          <p className="text-xs text-daara-text-muted">{user.email}</p>
                         </div>
-                      )}
-                      <span className="font-medium text-daara-text">{user.displayName}</span>
-                    </button>
-                    <button
-                      onClick={() => { logout(); setIsMobileMenuOpen(false); }}
-                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors ml-4"
-                    >
-                      <LogOut className="w-5 h-5" />
-                    </button>
+                      </div>
+                      <button
+                        onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
+                        title="Se déconnecter"
+                      >
+                        <LogOut className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="p-2 grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => { setPage('quiz'); setIsMobileMenuOpen(false); }}
+                        className="flex items-center justify-center gap-2 p-3 rounded-xl bg-daara-bg/50 hover:bg-daara-gold/10 text-daara-text hover:text-daara-gold transition-colors font-medium text-sm"
+                      >
+                        <User className="w-4 h-4" />
+                        Profil Quiz
+                      </button>
+                      <button
+                        onClick={() => { setPage('quiz'); setIsMobileMenuOpen(false); }}
+                        className="flex items-center justify-center gap-2 p-3 rounded-xl bg-daara-bg/50 hover:bg-daara-gold/10 text-daara-text hover:text-daara-gold transition-colors font-medium text-sm"
+                      >
+                        <Trophy className="w-4 h-4" />
+                        Classement
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button
