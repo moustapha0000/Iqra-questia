@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy } from 'lucide-react';
 import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
+import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
   currentPage: PageType;
@@ -14,6 +15,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const { user, signInWithGoogle, logout } = useAuth();
 
   useEffect(() => {
     // Check local storage or system preference on mount
@@ -61,6 +63,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
     { id: 'burdah', label: 'Burdah', icon: Heart },
     { id: 'prophetes', label: 'Prophètes', icon: Users },
     { id: 'quiz', label: 'Quiz', icon: HelpCircle },
+    { id: 'profile', label: 'Classement', icon: Trophy },
     { id: 'apropos', label: 'À propos', icon: Info },
   ];
 
@@ -123,6 +126,39 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
                   title="Lancer le tutoriel"
                 >
                   <HelpCircle className="w-5 h-5" />
+                </button>
+              )}
+              {user ? (
+                <div className="flex items-center gap-3 ml-4 pl-4 border-l border-daara-gold/20">
+                  <button 
+                    onClick={() => setPage('profile')}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                    title="Mon Espace"
+                  >
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-daara-gold/50" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-daara-gold/20 flex items-center justify-center text-daara-gold font-bold text-sm border border-daara-gold/50">
+                        {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-daara-text hidden lg:block">{user.displayName?.split(' ')[0]}</span>
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="p-2 text-daara-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
+                    title="Se déconnecter"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={signInWithGoogle}
+                  className="ml-4 flex items-center gap-2 bg-daara-surface border border-daara-gold/30 text-daara-gold px-4 py-2 rounded-full text-sm font-medium transition-all hover:bg-daara-gold hover:text-daara-bg"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Connexion
                 </button>
               )}
             </nav>
@@ -203,6 +239,37 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
             {/* Menu Items - Scrollable */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 relative z-10 pb-6 scrollbar-hide">
               <div className="flex flex-col gap-2 sm:gap-4 mt-2">
+                {user ? (
+                  <div className="flex items-center justify-between p-4 mb-2 bg-daara-surface rounded-2xl border border-daara-gold/20">
+                    <button 
+                      onClick={() => { setPage('profile'); setIsMobileMenuOpen(false); }}
+                      className="flex items-center gap-3 text-left w-full"
+                    >
+                      {user.photoURL ? (
+                        <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full border border-daara-gold/50" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-daara-gold/20 flex items-center justify-center text-daara-gold font-bold text-lg border border-daara-gold/50">
+                          {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                      )}
+                      <span className="font-medium text-daara-text">{user.displayName}</span>
+                    </button>
+                    <button
+                      onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors ml-4"
+                    >
+                      <LogOut className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { signInWithGoogle(); setIsMobileMenuOpen(false); }}
+                    className="flex items-center justify-center gap-2 w-full bg-daara-surface border border-daara-gold/30 text-daara-gold p-4 rounded-2xl font-medium mb-2"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    Se connecter
+                  </button>
+                )}
                 {navItems.map((item, idx) => {
                   const Icon = item.icon;
                   const isActive = currentPage === item.id;

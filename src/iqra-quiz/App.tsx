@@ -3,6 +3,9 @@ import { Unit, Question, UserState, Language } from './types';
 import { getUnitsForLanguage } from './data';
 import { getT } from './translations';
 import { Logo } from '../components/Logo';
+import { useAuth } from '../contexts/AuthContext';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // --- HOOKS & UTILS ---
 
@@ -892,6 +895,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
   const [showShop, setShowShop] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
+  const { user } = useAuth();
   
   const defaultState: UserState = {
         hearts: 5, gems: 100, xp: 0, level: 1, completedUnits: [], completedLessons: [], currentUnitId: 1, streak: 1, streakFreeze: 0, isPremium: false, language: 'fr', lastLoginDate: new Date().toISOString().split('T')[0], hasSeenOnboarding: false,
@@ -929,7 +933,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
       setCurrentScreen('LESSON'); 
   };
 
-  const handleFinishLesson = (gemsEarned: number) => {
+  const handleFinishLesson = async (gemsEarned: number) => {
     if (activeUnit) {
         const nextId = activeUnit.id + 1;
         const effectiveNextId = nextId > 30 ? 30 : nextId;
@@ -943,6 +947,26 @@ export default function App({ onBack }: { onBack?: () => void }) {
             return { ...q, progress: newProgress };
         });
         setUserState(prev => ({ ...prev, gems: prev.gems + gemsEarned + questGems, xp: prev.xp + 10, level: Math.floor((prev.xp + 10) / 100) + 1, completedUnits: prev.completedUnits.includes(activeUnit.id) ? prev.completedUnits : [...prev.completedUnits, activeUnit.id], currentUnitId: Math.max(prev.currentUnitId, effectiveNextId), dailyQuests: updatedQuests }));
+        
+        // Save score to Firebase if logged in
+        if (user) {
+          try {
+            const scoreData: any = {
+              userId: user.uid,
+              playerName: user.displayName || 'Anonyme',
+              score: gemsEarned,
+              totalQuestions: activeUnit.lessons?.[0]?.questions?.length || 1,
+              difficulty: 'moyen', // Defaulting to medium for now
+              createdAt: serverTimestamp()
+            };
+            if (user.photoURL) {
+              scoreData.playerPhoto = user.photoURL;
+            }
+            await addDoc(collection(db, 'quiz_scores'), scoreData);
+          } catch (error) {
+            handleFirestoreError(error, OperationType.CREATE, 'quiz_scores');
+          }
+        }
     }
     setActiveUnit(null); setCurrentScreen('PATH');
   };

@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "User ID" },
+        "displayName": { "type": "string", "description": "User's display name" },
+        "photoURL": { "type": "string", "description": "User's profile photo URL" },
+        "email": { "type": "string", "format": "email", "description": "User's email address" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "User's role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "QuizScore": {
+      "title": "QuizScore",
+      "description": "A user's score on a quiz",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user who played" },
+        "playerName": { "type": "string", "description": "Denormalized player name for leaderboard" },
+        "playerPhoto": { "type": "string", "description": "Denormalized player photo for leaderboard" },
+        "score": { "type": "number", "description": "The score achieved" },
+        "totalQuestions": { "type": "number", "description": "Total number of questions in the quiz" },
+        "difficulty": { "type": "string", "enum": ["facile", "moyen", "difficile"], "description": "The difficulty level played" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the score was recorded" }
+      },
+      "required": ["userId", "playerName", "score", "totalQuestions", "difficulty", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles. Document ID must match the user's UID."
+    },
+    "/quiz_scores/{scoreId}": {
+      "schema": { "$ref": "#/entities/QuizScore" },
+      "description": "Stores all quiz scores for the leaderboard."
+    }
+  }
+}
