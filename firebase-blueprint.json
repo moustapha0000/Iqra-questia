@@ -10,6 +10,7 @@
         "photoURL": { "type": "string", "description": "User's profile photo URL" },
         "email": { "type": "string", "format": "email", "description": "User's email address" },
         "role": { "type": "string", "enum": ["user", "admin"], "description": "User's role" },
+        "xp": { "type": "number", "description": "User's total experience points" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
       },
       "required": ["uid", "email", "role", "createdAt"]
@@ -28,6 +29,48 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "When the score was recorded" }
       },
       "required": ["userId", "playerName", "score", "totalQuestions", "difficulty", "createdAt"]
+    },
+    "ForumPost": {
+      "title": "ForumPost",
+      "description": "A post in the discussion forum",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user who posted" },
+        "userName": { "type": "string", "description": "Denormalized user name" },
+        "userPhoto": { "type": "string", "description": "Denormalized user photo" },
+        "content": { "type": "string", "description": "The content of the post" },
+        "category": { "type": "string", "enum": ["Général", "Fiqh", "Hadiths", "Coran", "Burdah", "Prophètes"], "description": "The category of the post" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the post was created" }
+      },
+      "required": ["userId", "userName", "content", "category", "createdAt"]
+    },
+    "QuizComment": {
+      "title": "QuizComment",
+      "description": "A comment on a specific quiz unit",
+      "type": "object",
+      "properties": {
+        "unitId": { "type": "number", "description": "The ID of the unit" },
+        "userId": { "type": "string", "description": "The ID of the user who commented" },
+        "userName": { "type": "string", "description": "Denormalized user name" },
+        "userPhoto": { "type": "string", "description": "Denormalized user photo" },
+        "content": { "type": "string", "description": "The content of the comment" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the comment was created" }
+      },
+      "required": ["unitId", "userId", "userName", "content", "createdAt"]
+    },
+    "PlaylistComment": {
+      "title": "PlaylistComment",
+      "description": "A comment on a specific playlist",
+      "type": "object",
+      "properties": {
+        "playlistId": { "type": "string", "description": "The ID of the playlist" },
+        "userId": { "type": "string", "description": "The ID of the user who commented" },
+        "userName": { "type": "string", "description": "Denormalized user name" },
+        "userPhoto": { "type": "string", "description": "Denormalized user photo" },
+        "content": { "type": "string", "description": "The content of the comment" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the comment was created" }
+      },
+      "required": ["playlistId", "userId", "userName", "content", "createdAt"]
     }
   },
   "firestore": {
@@ -38,6 +81,14 @@
     "/quiz_scores/{scoreId}": {
       "schema": { "$ref": "#/entities/QuizScore" },
       "description": "Stores all quiz scores for the leaderboard."
+    },
+    "/forum_posts/{postId}": {
+      "schema": { "$ref": "#/entities/ForumPost" },
+      "description": "Stores all forum posts."
+    },
+    "/quiz_comments/{commentId}": {
+      "schema": { "$ref": "#/entities/QuizComment" },
+      "description": "Stores all comments on quiz units."
     }
   }
 }

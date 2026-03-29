@@ -66,7 +66,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
     }
   };
 
-  const navItems: { id: PageType | 'quiz'; label: string; icon: React.ElementType }[] = [
+  const navItems: { id: PageType | 'quiz' | 'forum'; label: string; icon: React.ElementType }[] = [
     { id: 'home', label: 'Accueil', icon: Home },
     { id: 'fondements', label: 'Fondements', icon: BookOpen },
     { id: 'piliers', label: 'Piliers', icon: Star },
@@ -75,10 +75,11 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
     { id: 'burdah', label: 'Burdah', icon: Heart },
     { id: 'prophetes', label: 'Prophètes', icon: Users },
     { id: 'quiz', label: 'Quiz', icon: HelpCircle },
+    { id: 'forum', label: 'Forum', icon: MessageCircle },
     { id: 'apropos', label: 'À propos', icon: Info },
   ];
 
-  const handleNav = (id: PageType | 'quiz') => {
+  const handleNav = (id: PageType | 'quiz' | 'forum') => {
     setPage(id as PageType);
     setIsMobileMenuOpen(false);
   };

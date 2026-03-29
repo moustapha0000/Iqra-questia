@@ -5,7 +5,7 @@ import { getT } from './translations';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot, setDoc, doc, where } from 'firebase/firestore';
 
 // --- HOOKS & UTILS ---
 
@@ -157,7 +157,10 @@ const Icons = {
   Ice: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M12 2.25a.75.75 0 01.75.75v2.25l2.165-1.25a.75.75 0 01.75 1.3l-2.165 1.25 2.165 1.25a.75.75 0 01-.75 1.3l-2.165-1.25V10.5h2.25a.75.75 0 010 1.5h-2.25v2.25l2.165-1.25a.75.75 0 01.75 1.3l-2.165 1.25 2.165 1.25a.75.75 0 01-.75-1.3l2.165-1.25-2.165-1.25a.75.75 0 01.75-1.3l2.165 1.25V21a.75.75 0 01-1.5 0v-2.25l-2.165 1.25a.75.75 0 01-.75-1.3l2.165-1.25-2.165-1.25a.75.75 0 01.75-1.3l2.165 1.25V12h-2.25a.75.75 0 010-1.5h2.25V8.25L7.835 9.5a.75.75 0 01-.75-1.3l2.165-1.25-2.165-1.25a.75.75 0 01.75-1.3l2.165 1.25V3a.75.75 0 01.75-.75z" clipRule="evenodd" /></svg>,
   Crown: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M12 2.25c.605 0 1.137.332 1.408.83l1.832 3.398 3.737.495c.535.07.973.447 1.127.962.155.516-.07.989-.475 1.284l-2.738 2.016.715 3.336c.105.49-.107.994-.528 1.272a1.605 1.605 0 01-1.57.067L12 14.172l-3.508 1.738a1.605 1.605 0 01-1.57-.067c-.42-.278-.633-.782-.528-1.272l.715-3.336-2.738-2.016c-.405-.295-.63-.768-.475-1.284.154-.515.592-.892 1.127-.962l3.737-.495 1.832-3.398c.271-.498.803-.83 1.408-.83zM12 2.25a.75.75 0 01.75.75v.006c0 .194.156.352.35.356l.006.002h.002c.002 0 .004 0 .007 0 .204.015.356.19.356.394v.006c0 .194.156.352.35.356l.006.002h.002c.002 0 .004 0 .007 0 .204.015.356.19.356.394z" clipRule="evenodd" /></svg>,
   Construction: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" /></svg>,
-  FileText: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 013.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 013.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 01-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875zM12.75 1.5v3a2.25 2.25 0 01-2.25 2.25h-3" clipRule="evenodd" /></svg>
+  FileText: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 013.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 013.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 01-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875zM12.75 1.5v3a2.25 2.25 0 01-2.25 2.25h-3" clipRule="evenodd" /></svg>,
+  Send: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>,
+  MessageCircle: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 01-.814 1.686.75.75 0 00.44 1.223zM8.25 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM10.875 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" clipRule="evenodd" /></svg>,
+  Search: ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
 };
 
 // --- COMPONENTS UTILS ---
@@ -196,7 +199,7 @@ const SectionHeader = ({ title, description, color, yPos, isArabic }: any) => (
 );
 
 // --- COMPOSANT UNITNODE (LE BOUTON ROND) ---
-const UnitNode = ({ unit, onClick, status, x, y, startText, isArabic }: any) => {
+const UnitNode = ({ unit, onClick, status, x, y, startText, isArabic, onOpenComments }: any) => {
   const nodeColor = status === 'LOCKED'
     ? 'bg-[#e5e5e5] border-[#afafaf]' 
     : status === 'COMPLETED'
@@ -207,9 +210,8 @@ const UnitNode = ({ unit, onClick, status, x, y, startText, isArabic }: any) => 
 
   return (
     <div 
-        className="absolute flex flex-col items-center z-10 group cursor-pointer" 
+        className="absolute flex flex-col items-center z-10 group" 
         style={{ left: `calc(50% + ${x}px)`, top: `${y}px`, transform: 'translate(-50%, -50%)' }}
-        onClick={status === 'LOCKED' ? undefined : onClick}
     >
       {/* Tooltip 'START' if active */}
       {isActive && (
@@ -230,7 +232,8 @@ const UnitNode = ({ unit, onClick, status, x, y, startText, isArabic }: any) => 
 
       {/* The 3D Button */}
       <div 
-        className={`w-20 h-20 rounded-full flex items-center justify-center border-b-[6px] border-x-[3px] border-t-[3px] transition-all duration-150 shadow-sm ${nodeColor} ${status !== 'LOCKED' ? 'active:border-b-0 active:translate-y-[6px] hover:scale-105 hover:brightness-110' : ''} relative`}
+        onClick={status === 'LOCKED' ? undefined : onClick}
+        className={`w-20 h-20 rounded-full flex items-center justify-center border-b-[6px] border-x-[3px] border-t-[3px] transition-all duration-150 shadow-sm ${nodeColor} ${status !== 'LOCKED' ? 'active:border-b-0 active:translate-y-[6px] hover:scale-105 hover:brightness-110 cursor-pointer' : 'cursor-not-allowed'} relative`}
       >
         {status !== 'LOCKED' && <div className="absolute top-2 left-3 w-6 h-3 bg-white/30 rounded-full rotate-[-45deg]" />}
         
@@ -239,18 +242,29 @@ const UnitNode = ({ unit, onClick, status, x, y, startText, isArabic }: any) => 
         : <span className="text-3xl font-extrabold text-white drop-shadow-md">{unit.id}</span>}
       </div>
 
-      {/* UNIT TITLE DISPLAY - SAFE & SECURE */}
-      <div className={`mt-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl border-2 border-gray-200 text-center shadow-sm max-w-[120px] z-20 transition-opacity ${status === 'LOCKED' ? 'opacity-60' : 'opacity-100'}`}>
-          <span className={`text-[11px] leading-tight font-extrabold text-gray-600 block break-words line-clamp-2 ${isArabic ? 'font-arabic' : ''}`} dir="auto">
-              {unit.title}
-          </span>
+      {/* UNIT TITLE DISPLAY AND COMMENTS */}
+      <div className={`mt-3 flex items-center gap-2 z-20 transition-opacity ${status === 'LOCKED' ? 'opacity-60' : 'opacity-100'}`}>
+          <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl border-2 border-gray-200 text-center shadow-sm max-w-[120px]">
+              <span className={`text-[11px] leading-tight font-extrabold text-gray-600 block break-words line-clamp-2 ${isArabic ? 'font-arabic' : ''}`} dir="auto">
+                  {unit.title}
+              </span>
+          </div>
+          {status !== 'LOCKED' && (
+              <button 
+                  onClick={(e) => { e.stopPropagation(); onOpenComments(); }}
+                  className="bg-white border-2 border-gray-200 p-2 rounded-full hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
+                  title="Commentaires"
+              >
+                  <Icons.MessageCircle className="w-4 h-4 text-gray-500" />
+              </button>
+          )}
       </div>
     </div>
   );
 };
 
 // --- ECRAN PRINCIPAL DU CHEMIN ---
-const PathScreen = ({ units, userState, onSelectUnit, onOpenShop, t, onBack }: any) => {
+const PathScreen = ({ units, userState, onSelectUnit, onOpenShop, t, onBack, onOpenComments }: any) => {
   const windowSize = useWindowSize();
   const spacing = 160; 
   const startPadding = 150; 
@@ -372,6 +386,7 @@ const PathScreen = ({ units, userState, onSelectUnit, onOpenShop, t, onBack }: a
                             x={pos.x} 
                             y={pos.y}
                             isArabic={isArabic}
+                            onOpenComments={() => onOpenComments(unit)}
                         />
                    </React.Fragment>
                );
@@ -708,30 +723,47 @@ const LessonScreen = ({ unit, onClose, onFinishLesson, onWrongAnswer, onRefillHe
 const QuizLeaderboard = ({ t }: { t: any }) => {
   const [scores, setScores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'quiz_scores'),
-      orderBy('score', 'desc'),
-      limit(10)
-    );
+    setLoading(true);
+    let q;
+    if (searchTerm.trim() === '') {
+      q = query(
+        collection(db, 'quiz_scores'),
+        orderBy('score', 'desc'),
+        limit(50)
+      );
+    } else {
+      q = query(
+        collection(db, 'quiz_scores'),
+        where('playerName', '>=', searchTerm),
+        where('playerName', '<=', searchTerm + '\uf8ff'),
+        limit(50)
+      );
+    }
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newScores: any[] = [];
       snapshot.forEach((doc) => {
         newScores.push({ id: doc.id, ...doc.data() });
       });
+      
+      if (searchTerm.trim() !== '') {
+        newScores.sort((a, b) => b.score - a.score);
+      }
+      
       setScores(newScores);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'quiz_scores');
       setLoading(false);
+      handleFirestoreError(error, OperationType.LIST, 'quiz_scores');
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [searchTerm]);
 
-  if (loading) {
+  if (loading && scores.length === 0) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
@@ -741,15 +773,30 @@ const QuizLeaderboard = ({ t }: { t: any }) => {
 
   return (
     <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Icons.Crown className="w-6 h-6 text-amber-500" />
-        <span className="font-bold text-gray-700">Classement Global</span>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Icons.Crown className="w-6 h-6 text-amber-500" />
+          <span className="font-bold text-gray-700">Classement Global</span>
+        </div>
+      </div>
+      
+      <div className="mb-4 relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Icons.Search className="h-4 w-4 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Rechercher un joueur..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 transition-colors text-sm"
+        />
       </div>
       
       {scores.length === 0 ? (
-        <p className="text-gray-400 text-center py-4 text-sm">Aucun score pour le moment.</p>
+        <p className="text-gray-400 text-center py-4 text-sm">Aucun score trouvé.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           {scores.map((score, index) => (
             <div 
               key={score.id}
@@ -778,12 +825,12 @@ const QuizLeaderboard = ({ t }: { t: any }) => {
                 )}
                 <div className="flex flex-col">
                   <span className="font-bold text-gray-700 text-sm">{score.playerName}</span>
-                  <span className="text-[10px] text-gray-400 capitalize">{score.difficulty}</span>
+                  <span className="text-[10px] text-gray-400 uppercase tracking-wider">Niveau {Math.floor(score.score / 100) + 1}</span>
                 </div>
               </div>
               <div className="flex items-center gap-1">
                 <span className="font-extrabold text-amber-500">{score.score}</span>
-                <Icons.Gem className="w-4 h-4 text-amber-500" />
+                <Icons.Bolt className="w-4 h-4 text-amber-500" />
               </div>
             </div>
           ))}
@@ -974,6 +1021,123 @@ const ShopModal = ({ isOpen, onClose, userState, onBuyHearts, onBuyFreeze, onOpe
     );
 };
 
+const UnitCommentsModal = ({ isOpen, onClose, unit, t }: any) => {
+  const { user, signInWithGoogle } = useAuth();
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !unit) return;
+    const q = query(
+      collection(db, 'quiz_comments'),
+      where('unitId', '==', unit.id),
+      limit(100)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const allComments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      // Sort client-side to avoid needing a composite index in Firestore
+      allComments.sort((a, b) => {
+        const timeA = a.createdAt?.toMillis() || 0;
+        const timeB = b.createdAt?.toMillis() || 0;
+        return timeB - timeA;
+      });
+      setComments(allComments);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'quiz_comments');
+    });
+    return () => unsubscribe();
+  }, [isOpen, unit]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !newComment.trim() || !unit) return;
+
+    setIsSubmitting(true);
+    try {
+      await addDoc(collection(db, 'quiz_comments'), {
+        unitId: unit.id,
+        userId: user.uid,
+        userName: user.displayName || 'Anonyme',
+        userPhoto: user.photoURL || null,
+        content: newComment.trim(),
+        createdAt: serverTimestamp()
+      });
+      setNewComment('');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'quiz_comments');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fade-in p-4">
+      <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 h-[85vh] flex flex-col shadow-2xl">
+        <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-4">
+          <h2 className="text-xl font-extrabold text-gray-800 tracking-tight">Commentaires - {unit?.title}</h2>
+          <button onClick={onClose} className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition-colors"><Icons.X className="w-6 h-6 text-gray-500" /></button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto space-y-4 p-1 mb-4">
+          {comments.map(comment => (
+            <div key={comment.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <div className="flex items-center gap-3 mb-2">
+                {comment.userPhoto ? (
+                  <img src={comment.userPhoto} alt={comment.userName} className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <Icons.Profile className="w-4 h-4 text-gray-500" />
+                  </div>
+                )}
+                <span className="font-bold text-sm text-gray-700">{comment.userName}</span>
+              </div>
+              <p className="text-gray-600 text-sm whitespace-pre-wrap">{comment.content}</p>
+            </div>
+          ))}
+          {comments.length === 0 && (
+            <div className="text-center py-8 text-gray-400">
+              <Icons.MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>Aucun commentaire. Soyez le premier !</p>
+            </div>
+          )}
+        </div>
+
+        <div className="pt-4 border-t border-gray-100">
+          {!user ? (
+            <div className="text-center">
+              <p className="text-sm text-gray-500 mb-3">Connectez-vous pour commenter</p>
+              <Button3D variant="primary" onClick={signInWithGoogle} fullWidth className="text-sm py-3">
+                Se connecter avec Google
+              </Button3D>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Ajouter un commentaire..."
+                className="flex-1 bg-gray-100 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#059669] outline-none"
+                required
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting || !newComment.trim()}
+                className="bg-[#059669] text-white p-3 rounded-2xl hover:bg-[#047857] transition-colors disabled:opacity-50"
+              >
+                <Icons.Send className="w-5 h-5" />
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AboutModal = ({ isOpen, onClose, t }: any) => {
     if (!isOpen) return null;
     return (
@@ -1033,6 +1197,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
   const [showShop, setShowShop] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
+  const [commentsUnit, setCommentsUnit] = useState<Unit | null>(null);
   const { user } = useAuth();
   
   const defaultState: UserState = {
@@ -1048,6 +1213,11 @@ export default function App({ onBack }: { onBack?: () => void }) {
             const parsed = JSON.parse(saved);
             // Migration check
             if (typeof parsed.hasSeenOnboarding === 'undefined') parsed.hasSeenOnboarding = false;
+            if (typeof parsed.xp === 'undefined') parsed.xp = 0;
+            if (typeof parsed.level === 'undefined') parsed.level = 1;
+            if (!parsed.dailyQuests) parsed.dailyQuests = defaultState.dailyQuests;
+            if (!parsed.completedUnits) parsed.completedUnits = [];
+            if (!parsed.completedLessons) parsed.completedLessons = [];
             if(parsed.currentUnitId > 30) parsed.currentUnitId = 30;
             return parsed;
         }
@@ -1076,7 +1246,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
         const nextId = activeUnit.id + 1;
         const effectiveNextId = nextId > 30 ? 30 : nextId;
         let questGems = 0;
-        const updatedQuests = userState.dailyQuests.map(q => {
+        const updatedQuests = (userState.dailyQuests || []).map(q => {
             if (q.completed) return q;
             let newProgress = q.progress;
             if (q.type === 'LESSON') newProgress += 1;
@@ -1084,15 +1254,27 @@ export default function App({ onBack }: { onBack?: () => void }) {
             if (newProgress >= q.target) { questGems += q.reward; return { ...q, progress: q.target, completed: true }; }
             return { ...q, progress: newProgress };
         });
-        setUserState(prev => ({ ...prev, gems: prev.gems + gemsEarned + questGems, xp: prev.xp + 10, level: Math.floor((prev.xp + 10) / 100) + 1, completedUnits: prev.completedUnits.includes(activeUnit.id) ? prev.completedUnits : [...prev.completedUnits, activeUnit.id], currentUnitId: Math.max(prev.currentUnitId, effectiveNextId), dailyQuests: updatedQuests }));
+        setUserState(prev => {
+            const completedUnits = prev.completedUnits || [];
+            return {
+                ...prev,
+                gems: (prev.gems || 0) + gemsEarned + questGems,
+                xp: (prev.xp || 0) + 10,
+                level: Math.floor(((prev.xp || 0) + 10) / 100) + 1,
+                completedUnits: completedUnits.includes(activeUnit.id) ? completedUnits : [...completedUnits, activeUnit.id],
+                currentUnitId: Math.max(prev.currentUnitId || 1, effectiveNextId),
+                dailyQuests: updatedQuests
+            };
+        });
         
         // Save score to Firebase if logged in
         if (user) {
           try {
+            const newXp = (userState.xp || 0) + 10;
             const scoreData: any = {
               userId: user.uid,
               playerName: user.displayName || 'Anonyme',
-              score: gemsEarned,
+              score: newXp,
               totalQuestions: activeUnit.lessons?.[0]?.questions?.length || 1,
               difficulty: 'moyen', // Defaulting to medium for now
               createdAt: serverTimestamp()
@@ -1100,13 +1282,18 @@ export default function App({ onBack }: { onBack?: () => void }) {
             if (user.photoURL) {
               scoreData.playerPhoto = user.photoURL;
             }
-            await addDoc(collection(db, 'quiz_scores'), scoreData);
+            await setDoc(doc(db, 'quiz_scores', user.uid), scoreData, { merge: true });
           } catch (error) {
-            handleFirestoreError(error, OperationType.CREATE, 'quiz_scores');
+            handleFirestoreError(error, OperationType.WRITE, 'quiz_scores');
+          } finally {
+            setActiveUnit(null); setCurrentScreen('PATH');
           }
+        } else {
+          setActiveUnit(null); setCurrentScreen('PATH');
         }
+    } else {
+      setActiveUnit(null); setCurrentScreen('PATH');
     }
-    setActiveUnit(null); setCurrentScreen('PATH');
   };
 
   const handleBackup = () => {
@@ -1152,7 +1339,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
 
   return (
     <div className="h-full w-full bg-stone-50 sm:bg-stone-100 flex flex-col font-sans text-gray-900">
-      {currentScreen === 'PATH' && <PathScreen units={currentUnits} userState={userState} onSelectUnit={handleUnitSelect} onOpenShop={() => setShowShop(true)} t={t} onBack={onBack} />}
+      {currentScreen === 'PATH' && <PathScreen units={currentUnits} userState={userState} onSelectUnit={handleUnitSelect} onOpenShop={() => setShowShop(true)} t={t} onBack={onBack} onOpenComments={(unit: Unit) => setCommentsUnit(unit)} />}
       {currentScreen === 'PROFILE' && <ProfileScreen userState={userState} toggleSound={() => setUserState(p => ({...p, settings: { ...p.settings, soundEnabled: !p.settings.soundEnabled }}))} setLanguage={(l: Language) => setUserState(p => ({ ...p, language: l }))} t={t} onOpenLegal={() => setShowLegal(true)} onBackup={handleBackup} onRestore={handleRestore} onReset={handleReset} onBack={onBack} />}
       {(currentScreen === 'PATH' || currentScreen === 'PROFILE') && (
             <div className="fixed bottom-0 left-0 w-full bg-white border-t-2 border-gray-200 py-3 z-40 shadow-lg pb-safe">
@@ -1174,6 +1361,7 @@ export default function App({ onBack }: { onBack?: () => void }) {
       )}
       {currentScreen === 'PATH' && <ShopModal isOpen={showShop} onClose={() => setShowShop(false)} userState={userState} onBuyFreeze={() => { if(userState.gems>=200){setUserState(p=>({...p,gems:p.gems-200,streakFreeze:p.streakFreeze+1}));playSound('BUY',true);} }} onOpenPremium={() => {}} t={t} />}
       <AboutModal isOpen={showLegal} onClose={() => setShowLegal(false)} t={t} />
+      <UnitCommentsModal isOpen={!!commentsUnit} onClose={() => setCommentsUnit(null)} unit={commentsUnit} t={t} />
       {currentScreen === 'LESSON' && activeUnit && <LessonScreen unit={activeUnit} onClose={() => setCurrentScreen('PATH')} onFinishLesson={handleFinishLesson} onWrongAnswer={() => {}} soundEnabled={userState.settings.soundEnabled} isPremium={userState.isPremium} t={t} isArabic={isArabic} />}
     </div>
   );

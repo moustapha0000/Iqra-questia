@@ -68,6 +68,7 @@ service cloud.firestore {
 
     function isValidOptionalString(field, minLen, maxLen) {
       return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
              (request.resource.data[field] is string &&
               request.resource.data[field].size() >= minLen &&
               request.resource.data[field].size() <= maxLen);
@@ -82,9 +83,10 @@ service cloud.firestore {
       return hasRequiredFields(['uid', 'email', 'role', 'createdAt']) &&
              data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
              isValidOptionalString('displayName', 1, 100) &&
-             isValidOptionalString('photoURL', 1, 500) &&
+             isValidOptionalString('photoURL', 1, 2000) &&
              isValidEmail(data.email) &&
              data.role in ['user', 'admin'] &&
+             (!('xp' in data) || (data.xp is number && data.xp >= 0)) &&
              data.createdAt is timestamp;
     }
 
@@ -93,10 +95,43 @@ service cloud.firestore {
       return hasRequiredFields(['userId', 'playerName', 'score', 'totalQuestions', 'difficulty', 'createdAt']) &&
              data.userId is string && data.userId == request.auth.uid &&
              data.playerName is string && data.playerName.size() > 0 && data.playerName.size() < 100 &&
-             isValidOptionalString('playerPhoto', 1, 500) &&
+             isValidOptionalString('playerPhoto', 1, 2000) &&
              data.score is number && data.score >= 0 &&
              data.totalQuestions is number && data.totalQuestions > 0 &&
              data.difficulty in ['facile', 'moyen', 'difficile'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidForumPost() {
+      let data = request.resource.data;
+      return hasRequiredFields(['userId', 'userName', 'content', 'category', 'createdAt']) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() < 100 &&
+             isValidOptionalString('userPhoto', 1, 2000) &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 2000 &&
+             data.category in ['Général', 'Fiqh', 'Hadiths', 'Coran', 'Burdah', 'Prophètes'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidQuizComment() {
+      let data = request.resource.data;
+      return hasRequiredFields(['unitId', 'userId', 'userName', 'content', 'createdAt']) &&
+             data.unitId is number && data.unitId > 0 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() < 100 &&
+             isValidOptionalString('userPhoto', 1, 2000) &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 1000 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPlaylistComment() {
+      let data = request.resource.data;
+      return hasRequiredFields(['playlistId', 'userId', 'userName', 'content', 'createdAt']) &&
+             data.playlistId is string && data.playlistId.size() > 0 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() < 100 &&
+             isValidOptionalString('userPhoto', 1, 2000) &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 1000 &&
              data.createdAt is timestamp;
     }
 
@@ -113,9 +148,29 @@ service cloud.firestore {
 
     match /quiz_scores/{scoreId} {
       allow read: if true; // Public leaderboard
-      allow create: if isAuthenticated() && isValidQuizScore();
-      allow update: if false; // Scores are immutable
+      allow create: if isAuthenticated() && scoreId == request.auth.uid && isValidQuizScore();
+      allow update: if isAuthenticated() && scoreId == request.auth.uid && isValidQuizScore() && request.resource.data.userId == resource.data.userId;
       allow delete: if isAdmin();
+    }
+
+    match /forum_posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidForumPost();
+      allow update: if false; // Posts are immutable
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /quiz_comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidQuizComment();
+      allow update: if false; // Comments are immutable
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    match /playlist_comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidPlaylistComment();
+      allow update: if false; // Comments are immutable
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }
 }

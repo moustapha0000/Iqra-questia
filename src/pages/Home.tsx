@@ -1,14 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { PageType } from '../types';
-import { BookOpen, PlayCircle, BookText, Heart, Star, HelpCircle, Info, MessageCircle, Users } from 'lucide-react';
+import { BookOpen, PlayCircle, BookText, Heart, Star, HelpCircle, Info, MessageCircle, Users, Server, Database, Shield, Lock, FileText } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
 interface HomeProps {
   setPage: (page: PageType) => void;
 }
 
+interface Recommendation {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+}
+
 export function Home({ setPage }: HomeProps) {
+  const [backendStatus, setBackendStatus] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then((res) => res.json())
+      .then((data) => setBackendStatus(data.message))
+      .catch((err) => console.error('Backend not reachable:', err));
+
+    fetch('/api/recommendations')
+      .then((res) => res.json())
+      .then((data) => setRecommendations(data))
+      .catch((err) => console.error('Recommendations not reachable:', err));
+  }, []);
+
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Database': return Database;
+      case 'Shield': return Shield;
+      case 'Lock': return Lock;
+      case 'FileText': return FileText;
+      default: return Info;
+    }
+  };
+
   const cards = [
     { id: 'fondements', title: 'Fondements', icon: BookOpen, desc: 'La croyance (\'Aqida)' },
     { id: 'piliers', title: 'Piliers', icon: Star, desc: 'La pratique (Al-Ibadat)' },
@@ -37,6 +69,18 @@ export function Home({ setPage }: HomeProps) {
         >
           Bienvenue sur Iqra Quest
         </motion.div>
+
+        {backendStatus && (
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-center justify-center gap-2 mb-6 px-4 py-2 rounded-full border border-green-500/30 bg-green-500/10 text-green-600 font-medium text-xs tracking-widest uppercase relative z-10 mx-auto w-fit"
+          >
+            <Server className="w-4 h-4" />
+            {backendStatus}
+          </motion.div>
+        )}
         
         <h1 className="text-5xl md:text-7xl font-serif font-bold text-daara-text mb-6 leading-tight relative z-10">
           La plateforme islamique <br className="hidden md:block" />
@@ -95,7 +139,7 @@ export function Home({ setPage }: HomeProps) {
         })}
       </div>
 
-      <div id="quiz-section" className="text-center bg-daara-surface rounded-3xl p-8 md:p-16 shadow-2xl border border-daara-gold/20 relative overflow-hidden">
+      <div id="quiz-section" className="text-center bg-daara-surface rounded-3xl p-8 md:p-16 shadow-2xl border border-daara-gold/20 relative overflow-hidden mb-20">
         <div className="absolute top-0 right-0 w-full max-w-96 aspect-square bg-daara-gold/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-full max-w-96 aspect-square bg-daara-gold/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
         
@@ -114,6 +158,39 @@ export function Home({ setPage }: HomeProps) {
           </button>
         </div>
       </div>
+
+      {recommendations.length > 0 && (
+        <div className="mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-serif font-bold text-daara-text mb-4">Point 4 : Recommandations Full-Stack</h2>
+            <p className="text-daara-text-muted max-w-2xl mx-auto">
+              Ces recommandations sont chargées dynamiquement depuis une base de données SQLite via notre nouvelle API Express.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {recommendations.map((rec, idx) => {
+              const Icon = getIcon(rec.icon);
+              return (
+                <motion.div
+                  key={rec.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * idx }}
+                  className="bg-daara-surface p-6 rounded-2xl shadow-md border border-daara-gold/10 flex gap-4 items-start"
+                >
+                  <div className="w-12 h-12 rounded-full bg-daara-gold/10 flex items-center justify-center shrink-0">
+                    <Icon className="w-6 h-6 text-daara-gold" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-daara-text mb-2">{rec.title}</h3>
+                    <p className="text-daara-text-muted text-sm leading-relaxed">{rec.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

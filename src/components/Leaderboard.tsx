@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { Trophy, Medal, Star } from 'lucide-react';
+import { Trophy, Medal, Star, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface Score {
@@ -15,30 +15,47 @@ interface Score {
 export function Leaderboard() {
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'quiz_scores'),
-      orderBy('score', 'desc'),
-      limit(10)
-    );
+    setLoading(true);
+    let q;
+    if (searchTerm.trim() === '') {
+      q = query(
+        collection(db, 'quiz_scores'),
+        orderBy('score', 'desc'),
+        limit(50)
+      );
+    } else {
+      q = query(
+        collection(db, 'quiz_scores'),
+        where('playerName', '>=', searchTerm),
+        where('playerName', '<=', searchTerm + '\uf8ff'),
+        limit(50)
+      );
+    }
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newScores: Score[] = [];
       snapshot.forEach((doc) => {
         newScores.push({ id: doc.id, ...doc.data() } as Score);
       });
+      
+      if (searchTerm.trim() !== '') {
+        newScores.sort((a, b) => b.score - a.score);
+      }
+      
       setScores(newScores);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'quiz_scores');
       setLoading(false);
+      handleFirestoreError(error, OperationType.LIST, 'quiz_scores');
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [searchTerm]);
 
-  if (loading) {
+  if (loading && scores.length === 0) {
     return (
       <div className="flex justify-center items-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-daara-gold"></div>
@@ -48,15 +65,29 @@ export function Leaderboard() {
 
   return (
     <div className="bg-daara-surface rounded-3xl p-6 md:p-8 shadow-xl border border-daara-gold/20">
-      <div className="flex items-center gap-3 mb-8">
-        <Trophy className="w-8 h-8 text-daara-gold" />
-        <h2 className="text-2xl md:text-3xl font-serif font-bold text-daara-text">Classement Global</h2>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Trophy className="w-8 h-8 text-daara-gold" />
+          <h2 className="text-2xl md:text-3xl font-serif font-bold text-daara-text">Classement Global</h2>
+        </div>
+        <div className="relative w-full md:w-64">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-daara-text-muted" />
+          </div>
+          <input
+            type="text"
+            placeholder="Rechercher un joueur..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-daara-bg border border-daara-gold/30 rounded-xl focus:border-daara-gold focus:outline-none focus:ring-2 focus:ring-daara-gold/20 transition-colors text-daara-text"
+          />
+        </div>
       </div>
 
       {scores.length === 0 ? (
-        <p className="text-daara-text-muted text-center py-8">Aucun score pour le moment. Soyez le premier !</p>
+        <p className="text-daara-text-muted text-center py-8">Aucun score trouvé.</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
           {scores.map((score, index) => (
             <motion.div
               key={score.id}
@@ -87,13 +118,12 @@ export function Leaderboard() {
                   )}
                   <div>
                     <p className="font-bold text-daara-text">{score.playerName}</p>
-                    <p className="text-xs text-daara-text-muted capitalize">{score.difficulty}</p>
+                    <p className="text-xs text-daara-text-muted capitalize">Niveau {Math.floor(score.score / 100) + 1}</p>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-xl text-daara-gold">{score.score}</span>
-                <Star className="w-5 h-5 text-daara-gold fill-daara-gold" />
+                <span className="font-bold text-xl text-daara-gold">{score.score} XP</span>
               </div>
             </motion.div>
           ))}
