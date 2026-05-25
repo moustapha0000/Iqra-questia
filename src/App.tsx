@@ -1,11 +1,13 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { PageType } from './types';
+import { PageType, PlaylistInfo } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
 import { VideoSection } from './pages/VideoSection';
 import { About } from './pages/About';
 import { Forum } from './pages/Forum';
+import { Dashboard } from './pages/Dashboard';
+import { Admin } from './pages/Admin';
 import { Chatbot } from './components/Chatbot';
 
 import { playlists } from './data';
@@ -16,12 +18,33 @@ const IqraQuiz = React.lazy(() => import('./iqra-quiz/App'));
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
+  const [dynamicPlaylists, setDynamicPlaylists] = useState<Record<string, PlaylistInfo>>(playlists);
+
+  // Fetch dynamic playlists from API on mount
+  useEffect(() => {
+    fetch('/api/playlists')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const map: Record<string, PlaylistInfo> = {};
+          data.forEach((p: any) => {
+            map[p.key] = { id: p.id, title: p.title, desc: p.desc };
+          });
+          setDynamicPlaylists(map);
+        }
+      })
+      .catch((err) => console.warn('Could not load dynamic playlists, using local fallback:', err));
+  }, []);
 
   // Handle hash routing
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '') as PageType;
-      if (hash && ['home', 'fondements', 'piliers', 'fiqh', 'hadiths', 'burdah', 'prophetes', 'apropos', 'quiz', 'forum'].includes(hash)) {
+      const validPages = [
+        'home', 'fondements', 'piliers', 'fiqh', 'hadiths', 'burdah', 'prophetes', 
+        'apropos', 'quiz', 'forum', 'dashboard', 'admin'
+      ];
+      if (hash && (validPages.includes(hash) || dynamicPlaylists[hash])) {
         setCurrentPage(hash);
       } else {
         setCurrentPage('home');
@@ -32,7 +55,7 @@ export default function App() {
     handleHashChange(); // Initial check
 
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [dynamicPlaylists]);
 
   const setPage = (page: PageType) => {
     window.location.hash = page;
@@ -48,6 +71,10 @@ export default function App() {
         return <About />;
       case 'forum':
         return <Forum />;
+      case 'dashboard':
+        return <Dashboard />;
+      case 'admin':
+        return <Admin />;
       case 'quiz':
         return (
           <Suspense fallback={<div className="flex items-center justify-center h-full w-full py-20"><Loader2 className="w-8 h-8 animate-spin text-daara-gold" /></div>}>
@@ -55,8 +82,8 @@ export default function App() {
           </Suspense>
         );
       default:
-        if (playlists[currentPage]) {
-          return <VideoSection info={playlists[currentPage]} />;
+        if (dynamicPlaylists[currentPage]) {
+          return <VideoSection info={dynamicPlaylists[currentPage]} />;
         }
         return <Home setPage={setPage} />;
     }

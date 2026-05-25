@@ -56,6 +56,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
+  // Log the error but DO NOT throw — throwing here would crash the AuthProvider
+  // and prevent setLoading(false) from running, freezing the entire app.
   console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Loader2, User, Bot, Maximize2, Minimize2, Paperclip, ScanEye, Image as ImageIcon } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, User, Bot, Maximize2, Minimize2, Paperclip, ScanEye, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from '@google/genai';
 import Markdown from 'react-markdown';
@@ -20,12 +20,22 @@ interface Message {
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'model',
-      text: "As-salamu alaykum ! Je suis le Guide Iqra. Je suis là pour répondre à toutes vos questions concernant l'Islam, le Coran, les Hadiths et la jurisprudence (Fiqh). Comment puis-je vous aider aujourd'hui ?",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = localStorage.getItem('iqra_chat_history');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      {
+        role: 'model',
+        text: "As-salamu alaykum ! Je suis le Guide Iqra. Je suis là pour répondre à toutes vos questions concernant l'Islam, le Coran, les Hadiths et la jurisprudence (Fiqh). Comment puis-je vous aider aujourd'hui ?",
+      },
+    ];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
@@ -35,6 +45,28 @@ export function Chatbot() {
 
   // Initialize Gemini API
   const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY });
+
+  const suggestions = [
+    "Quels sont les piliers de l'Islam ?",
+    "Qu'est-ce que le Hadith Jibril ?",
+    "Comment se purifier pour la prière ?"
+  ];
+
+  useEffect(() => {
+    localStorage.setItem('iqra_chat_history', JSON.stringify(messages));
+  }, [messages]);
+
+  const clearHistory = () => {
+    if (confirm("Voulez-vous réinitialiser l'historique de discussion ?")) {
+      const defaultMsg: Message[] = [
+        {
+          role: 'model',
+          text: "As-salamu alaykum ! Je suis le Guide Iqra. Je suis là pour répondre à toutes vos questions concernant l'Islam, le Coran, les Hadiths et la jurisprudence (Fiqh). Comment puis-je vous aider aujourd'hui ?",
+        }
+      ];
+      setMessages(defaultMsg);
+    }
+  };
 
   const systemInstruction = `Tu es "Guide Iqra", un enseignant et érudit bienveillant, sage et très compétent en Islam. 
 Ton rôle est d'accompagner les utilisateurs dans leur apprentissage de la religion.
@@ -173,7 +205,7 @@ RÈGLES IMPORTANTES :
       while (retries > 0) {
         try {
           response = await ai.models.generateContentStream({
-            model: 'gemini-3-flash-preview', // Use flash for multimodal capabilities
+            model: 'gemini-3.5-flash', // Use flash for multimodal capabilities
             contents: historyContents,
             config: {
               systemInstruction,
@@ -299,6 +331,13 @@ RÈGLES IMPORTANTES :
               </div>
               <div className="flex items-center gap-1">
                 <button
+                  onClick={clearHistory}
+                  className="text-daara-text-muted hover:text-red-400 transition-colors p-2"
+                  title="Effacer l'historique"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+                <button
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="text-daara-text-muted hover:text-daara-gold transition-colors p-2 hidden sm:block"
                   title={isExpanded ? "Réduire" : "Agrandir"}
@@ -377,6 +416,21 @@ RÈGLES IMPORTANTES :
 
             {/* Input Area */}
             <div className="p-4 bg-daara-surface border-t border-daara-gold/10">
+              
+              {/* Suggestions Pills */}
+              {messages.length <= 1 && !input.trim() && (
+                <div className="flex gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setInput(s)}
+                      className="text-[11px] bg-daara-gold/10 hover:bg-daara-gold/20 text-daara-gold border border-daara-gold/20 px-3 py-1 rounded-full whitespace-nowrap transition-colors"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
               
               {/* Attachments Preview */}
               {(attachedFiles.length > 0 || pageContext) && (
