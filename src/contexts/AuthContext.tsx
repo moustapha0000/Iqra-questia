@@ -3,6 +3,9 @@ import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut 
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
+// Admin email — must match the one in firestore.rules isAdmin()
+const ADMIN_EMAIL = 'seckmoustapha6002@gmail.com';
+
 export interface UserProfile {
   uid: string;
   displayName: string;
@@ -62,11 +65,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Setup profile for a logged-in user
   const setupUserProfile = useCallback(async (currentUser: User) => {
     const userRef = doc(db, 'users', currentUser.uid);
+    const isAdminEmail = currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
     try {
       const userSnap = await getDoc(userRef);
       if (!userSnap.exists()) {
         // Create new user profile in Firestore
+        // Firestore rules require role='user' on create, so we create first then promote
         const initialProfile: any = {
           uid: currentUser.uid,
           displayName: currentUser.displayName || 'Anonyme',
@@ -79,6 +84,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: serverTimestamp(),
         };
         await setDoc(userRef, initialProfile);
+
+        // Auto-promote admin email after creation
+        // The isAdmin() rule in Firestore allows this email to update the role
+        if (isAdminEmail) {
+          try {
+            await updateDoc(userRef, { role: 'admin' });
+            console.log('Admin email detected — role auto-promoted to admin.');
+          } catch (promoteError) {
+            console.error('Failed to auto-promote admin role:', promoteError);
+          }
+        }
+      } else {
+        // Existing profile: check if admin email but role is still 'user'
+        const existingData = userSnap.data();
+        if (isAdminEmail && existingData?.role !== 'admin') {
+          try {
+            await updateDoc(userRef, { role: 'admin' });
+            console.log('Existing user promoted to admin role.');
+          } catch (promoteError) {
+            console.error('Failed to promote existing user to admin:', promoteError);
+          }
+        }
       }
     } catch (error: any) {
       console.error('Firestore profile setup error:', error?.message || error);
@@ -89,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         displayName: currentUser.displayName || 'Anonyme',
         photoURL: currentUser.photoURL || '',
         email: currentUser.email || '',
-        role: 'user',
+        role: isAdminEmail ? 'admin' : 'user',
         xp: 0,
         streak: 0,
         badges: ['welcome'],
