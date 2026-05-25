@@ -23,7 +23,7 @@ interface UserDoc {
 }
 
 export function Admin() {
-  const { user, profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin, logout, signInWithGoogle } = useAuth();
   const [activeTab, setActiveTab] = useState<'playlists' | 'users' | 'activity'>('playlists');
   
   // Playlists State
@@ -45,12 +45,50 @@ export function Admin() {
   // Check admin authorization
   if (!user || !isAdmin) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
-        <ShieldAlert className="w-16 h-16 text-red-500 mb-6 animate-bounce" />
-        <h2 className="text-3xl font-serif font-bold text-daara-text mb-4">Accès Refusé</h2>
-        <p className="text-daara-text-muted max-w-md">
-          Cette zone est réservée exclusivement aux administrateurs de la plateforme Iqra Quest.
-        </p>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-8 space-y-6">
+        <ShieldAlert className="w-16 h-16 text-red-500 mb-2 animate-bounce" />
+        <h2 className="text-3xl font-serif font-bold text-daara-text">Accès Refusé</h2>
+        
+        <div className="bg-daara-surface border border-daara-gold/20 p-6 rounded-3xl max-w-md w-full shadow-xl">
+          {user ? (
+            <div className="space-y-4">
+              <p className="text-sm text-daara-text">
+                Vous êtes actuellement connecté avec l'adresse :
+              </p>
+              <p className="text-sm font-bold text-daara-gold bg-daara-bg/50 py-3 px-4 rounded-xl border border-daara-gold/10 truncate select-all">
+                {user.email}
+              </p>
+              <p className="text-xs text-daara-text-muted leading-relaxed">
+                Cette adresse n'est pas reconnue comme administrateur. L'accès requiert l'adresse : <span className="font-semibold text-daara-text">seckmoustapha6002@gmail.com</span>.
+              </p>
+              <button
+                onClick={async () => {
+                  try {
+                    await logout();
+                    await signInWithGoogle();
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                className="w-full mt-4 bg-daara-gold text-daara-bg py-3 px-6 rounded-xl text-sm font-bold shadow-md hover:bg-yellow-600 transition-colors"
+              >
+                Changer de compte
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-daara-text-muted">
+                Vous n'êtes pas connecté à votre compte.
+              </p>
+              <button
+                onClick={signInWithGoogle}
+                className="w-full bg-daara-gold text-daara-bg py-3 px-6 rounded-xl text-sm font-bold shadow-md hover:bg-yellow-600 transition-colors"
+              >
+                Se connecter
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

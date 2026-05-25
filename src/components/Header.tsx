@@ -114,6 +114,10 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
     { id: 'apropos', label: 'À propos', icon: Info },
   ];
 
+  if (isAdmin) {
+    navItems.push({ id: 'admin', label: 'Admin 👑', icon: Sliders });
+  }
+
   const handleNav = (id: PageType) => {
     setPage(id);
     setIsMobileMenuOpen(false);
