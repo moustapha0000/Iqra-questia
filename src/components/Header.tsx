@@ -15,7 +15,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const { user, profile, authError, signInWithGoogle, logout } = useAuth();
+  const { user, profile, authError, isAdmin, signInWithGoogle, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   
@@ -287,7 +287,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
                             <Trophy className="w-4 h-4" />
                             Classement Quiz
                           </button>
-                          {profile?.role === 'admin' && (
+                          {isAdmin && (
                             <button
                               onClick={() => {
                                 setPage('admin');
@@ -468,7 +468,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
                         <Trophy className="w-4 h-4" />
                         Classement
                       </button>
-                      {profile?.role === 'admin' && (
+                      {isAdmin && (
                         <button
                           onClick={() => { setPage('admin'); setIsMobileMenuOpen(false); }}
                           className="col-span-2 flex items-center justify-center gap-2 p-3 rounded-xl bg-daara-bg/50 hover:bg-daara-gold/10 text-daara-gold transition-colors font-medium text-sm"

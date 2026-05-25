@@ -23,7 +23,7 @@ interface UserDoc {
 }
 
 export function Admin() {
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<'playlists' | 'users' | 'activity'>('playlists');
   
   // Playlists State
@@ -43,7 +43,7 @@ export function Admin() {
   const [recentComments, setRecentComments] = useState<any[]>([]);
 
   // Check admin authorization
-  if (!user || profile?.role !== 'admin') {
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
         <ShieldAlert className="w-16 h-16 text-red-500 mb-6 animate-bounce" />

@@ -24,6 +24,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   authError: string | null;
+  isAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   earnXP: (amount: number) => Promise<void>;
@@ -36,6 +37,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   authError: null,
+  isAdmin: false,
   signInWithGoogle: async () => {},
   logout: async () => {},
   earnXP: async () => {},
@@ -302,8 +304,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Compute admin status from both profile role AND email
+  const isAdmin = !!(profile?.role === 'admin' || (user?.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()));
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, authError, signInWithGoogle, logout, earnXP, unlockBadge, updateStreak }}>
+    <AuthContext.Provider value={{ user, profile, loading, authError, isAdmin, signInWithGoogle, logout, earnXP, unlockBadge, updateStreak }}>
       {children}
     </AuthContext.Provider>
   );
