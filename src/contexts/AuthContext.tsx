@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
@@ -119,28 +119,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
 
-    // Check for redirect result first (for mobile browsers that use redirect instead of popup)
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result?.user) {
-          console.log("Redirect sign-in successful for:", result.user.email);
-        }
-      })
-      .catch((error) => {
-        console.error('Redirect result error:', error);
-        // Handle common mobile/Safari errors
-        if (error?.code === 'auth/web-storage-unsupported') {
-          setAuthError(
-            "Le stockage web ou les cookies tiers sont bloqués. " +
-            "Veuillez désactiver le 'Suivi intersite' dans les paramètres de votre navigateur (Safari/Chrome)."
-          );
-        } else if (error?.code === 'auth/network-request-failed') {
-          setAuthError("Erreur réseau lors de la redirection. Vérifiez votre connexion.");
-        } else if (error?.code && error.code !== 'auth/popup-blocked') {
-          setAuthError(`Erreur d'authentification par redirection : ${error.message || error.code}`);
-        }
-      });
-
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       // Clean up previous profile listener
       if (unsubscribeProfile) {
@@ -184,30 +162,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const provider = new GoogleAuthProvider();
     setAuthError(null);
 
-    // Detect mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-
     try {
-      if (isMobile) {
-        // Mobile browsers: redirect is much more reliable and won't get blocked by popup blockers
-        console.log("Mobile device detected, using signInWithRedirect...");
-        await signInWithRedirect(auth, provider);
-      } else {
-        // Desktop browsers: popup is faster and keeps the user on the same page
-        await signInWithPopup(auth, provider);
-      }
+      // Use popup for all platforms to resolve missing initial state issues from session storage partitioning
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Google Sign-In error:", error);
 
-      if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
-        try {
-          console.log("Popup blocked/closed, falling back to signInWithRedirect...");
-          await signInWithRedirect(auth, provider);
-          return;
-        } catch (redirectError: any) {
-          console.error("Redirect sign-in also failed:", redirectError);
-          setAuthError(`Impossible de se connecter : ${redirectError.message}`);
-        }
+      if (error?.code === 'auth/popup-blocked') {
+        setAuthError(
+          "La fenêtre de connexion a été bloquée par votre navigateur. " +
+          "Veuillez autoriser les fenêtres contextuelles (popups) pour ce site."
+        );
+      } else if (error?.code === 'auth/popup-closed-by-user') {
+        setAuthError("Connexion annulée par l'utilisateur (fenêtre fermée).");
       } else if (error?.code === 'auth/unauthorized-domain') {
         setAuthError(
           "Ce domaine n'est pas autorisé dans la console Firebase. " +
