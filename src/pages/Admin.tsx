@@ -42,6 +42,48 @@ export function Admin() {
   const [recentPosts, setRecentPosts] = useState<any[]>([]);
   const [recentComments, setRecentComments] = useState<any[]>([]);
 
+  // Fetch Playlists from SQLite API
+  const fetchPlaylists = () => {
+    fetch('/api/playlists')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setPlaylists(data);
+      })
+      .catch(err => console.error("Error fetching playlists:", err));
+  };
+
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+
+    fetchPlaylists();
+
+    // Query Users from Firestore (Admins only)
+    const unsubscribeUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const usersData = snapshot.docs.map(doc => doc.data() as UserDoc);
+      setUsersList(usersData);
+    });
+
+    // Query Recent Posts for monitoring
+    const qPosts = query(collection(db, 'forum_posts'), orderBy('createdAt', 'desc'), limit(15));
+    const unsubscribePosts = onSnapshot(qPosts, (snapshot) => {
+      const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRecentPosts(postsData);
+    });
+
+    // Query Recent Playlist Comments
+    const qComments = query(collection(db, 'playlist_comments'), orderBy('createdAt', 'desc'), limit(15));
+    const unsubscribeComments = onSnapshot(qComments, (snapshot) => {
+      const commentsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRecentComments(commentsData);
+    });
+
+    return () => {
+      unsubscribeUsers();
+      unsubscribePosts();
+      unsubscribeComments();
+    };
+  }, [user, isAdmin]);
+
   // Check admin authorization
   if (!user || !isAdmin) {
     return (
@@ -92,46 +134,6 @@ export function Admin() {
       </div>
     );
   }
-
-  // Fetch Playlists from SQLite API
-  const fetchPlaylists = () => {
-    fetch('/api/playlists')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setPlaylists(data);
-      })
-      .catch(err => console.error("Error fetching playlists:", err));
-  };
-
-  useEffect(() => {
-    fetchPlaylists();
-
-    // Query Users from Firestore (Admins only)
-    const unsubscribeUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
-      const usersData = snapshot.docs.map(doc => doc.data() as UserDoc);
-      setUsersList(usersData);
-    });
-
-    // Query Recent Posts for monitoring
-    const qPosts = query(collection(db, 'forum_posts'), orderBy('createdAt', 'desc'), limit(15));
-    const unsubscribePosts = onSnapshot(qPosts, (snapshot) => {
-      const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setRecentPosts(postsData);
-    });
-
-    // Query Recent Playlist Comments
-    const qComments = query(collection(db, 'playlist_comments'), orderBy('createdAt', 'desc'), limit(15));
-    const unsubscribeComments = onSnapshot(qComments, (snapshot) => {
-      const commentsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setRecentComments(commentsData);
-    });
-
-    return () => {
-      unsubscribeUsers();
-      unsubscribePosts();
-      unsubscribeComments();
-    };
-  }, []);
 
   // CRUD Playlists
   const handleSavePlaylist = (e: React.FormEvent) => {
