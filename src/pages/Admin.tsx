@@ -58,6 +58,15 @@ const NAV_ITEMS: { id: AdminTab; label: string; icon: React.ElementType }[] = [
   { id: 'settings',   label: 'Paramètres',       icon: Settings },
 ];
 
+const PLAYLIST_GRADIENTS: Record<string, string> = {
+  fondements: 'from-blue-600 to-indigo-800',
+  piliers: 'from-amber-500 to-orange-700',
+  fiqh: 'from-emerald-600 to-teal-800',
+  hadiths: 'from-purple-600 to-pink-800',
+  prophetes: 'from-sky-600 to-blue-800',
+  burdah: 'from-rose-600 to-red-800',
+};
+
 // ─── Helper: format relative time ─────────────────────────────────────────
 function formatRelative(ts: any): string {
   if (!ts) return '—';
@@ -498,19 +507,28 @@ export function Admin() {
                         Pages les plus visitées
                       </h3>
                       {pageViews.length > 0 ? (
-                        <div className="space-y-3">
-                          {pageViews.map((pv: any) => (
-                            <div key={`${pv.date}-${pv.page}`} className="flex items-center gap-3">
-                              <span className="text-sm font-mono text-daara-gold w-24 truncate">/{pv.page}</span>
-                              <div className="flex-1 bg-daara-bg/60 rounded-full h-2 overflow-hidden">
-                                <div
-                                  className="h-2 bg-gradient-to-r from-daara-gold to-yellow-400 rounded-full"
-                                  style={{ width: `${Math.min(100, (pv.views / (pageViews[0]?.views || 1)) * 100)}%` }}
-                                />
+                        <div className="space-y-2">
+                          {pageViews.map((pv: any) => {
+                            const avgDuration = pv.durationCount && pv.totalDuration ? Math.round(pv.totalDuration / pv.durationCount) : null;
+                            const durationStr = avgDuration !== null
+                              ? (avgDuration >= 60 ? `${Math.floor(avgDuration / 60)}m ${avgDuration % 60}s` : `${avgDuration}s`)
+                              : '—';
+                            return (
+                              <div key={`${pv.date}-${pv.page}`} className="flex items-center justify-between gap-4 py-2 border-b border-daara-gold/5 last:border-0">
+                                <span className="text-sm font-mono text-daara-gold w-24 truncate">/{pv.page}</span>
+                                <div className="flex-1 bg-daara-bg/60 rounded-full h-1.5 overflow-hidden">
+                                  <div
+                                    className="h-1.5 bg-gradient-to-r from-daara-gold to-yellow-400 rounded-full"
+                                    style={{ width: `${Math.min(100, (pv.views / (pageViews[0]?.views || 1)) * 100)}%` }}
+                                  />
+                                </div>
+                                <div className="flex items-center gap-4 text-xs shrink-0 text-right">
+                                  <span className="text-daara-text font-semibold">{pv.views} vue{pv.views > 1 ? 's' : ''}</span>
+                                  <span className="text-daara-text-muted font-medium w-16">⏱ {durationStr}</span>
+                                </div>
                               </div>
-                              <span className="text-xs text-daara-text-muted w-8 text-right">{pv.views}</span>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-daara-text-muted text-sm">Les statistiques s'affichent après les premières visites.</p>
@@ -658,11 +676,17 @@ export function Admin() {
                       >
                         <div className="flex items-stretch">
                           {/* Thumbnail */}
-                          <div className="w-28 sm:w-36 shrink-0 bg-daara-bg/50 overflow-hidden">
-                            {p.id && !p.id.startsWith('PL_FAKE')
-                              ? <img src={`https://img.youtube.com/vi/${p.id}/mqdefault.jpg`} alt={p.title} className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-                              : <div className="w-full h-full flex items-center justify-center text-daara-gold/20"><Video className="w-10 h-10" /></div>
-                            }
+                          <div className="w-28 sm:w-36 shrink-0 bg-daara-bg/50 overflow-hidden relative border-r border-daara-gold/10">
+                            {p.thumbnail ? (
+                              <img src={p.thumbnail} alt={p.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className={`w-full h-full bg-gradient-to-br ${
+                                PLAYLIST_GRADIENTS[p.key] || 'from-daara-gold/20 to-daara-surface'
+                              } flex flex-col items-center justify-center p-3 text-center text-white select-none`}>
+                                <Video className="w-6 h-6 mb-1 text-daara-gold-light opacity-90" />
+                                <span className="text-[9px] font-bold uppercase tracking-wider line-clamp-1">{p.key}</span>
+                              </div>
+                            )}
                           </div>
                           {/* Info */}
                           <div className="flex-1 p-4">

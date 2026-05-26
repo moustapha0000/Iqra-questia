@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { recordSession, recordPageView } from './utils/analytics';
+import { recordSession, recordPageView, recordPageDuration } from './utils/analytics';
 import { PageType, PlaylistInfo } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -49,6 +49,19 @@ export default function App() {
   // Analytics — record session once and track page views
   useEffect(() => { recordSession(); }, []);
   useEffect(() => { recordPageView(currentPage); }, [currentPage]);
+
+  // Track duration spent on each page
+  useEffect(() => {
+    const startTime = Date.now();
+    const activePage = currentPage;
+
+    return () => {
+      const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+      if (elapsedSeconds > 0) {
+        recordPageDuration(activePage, elapsedSeconds);
+      }
+    };
+  }, [currentPage]);
 
   // Handle hash routing
   useEffect(() => {

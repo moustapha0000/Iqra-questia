@@ -1,13 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { PageType, PlaylistInfo } from '../types';
 import { 
   BookOpen, PlayCircle, BookText, Heart, Star, 
   HelpCircle, Info, MessageSquare, Users, CheckCircle, 
-  Trophy, BookOpenCheck, ArrowRight, Activity, Clock 
+  Trophy, BookOpenCheck, ArrowRight, Activity, Clock,
+  Play, Pause, Sparkles, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserProgress, UserProgressMap } from '../utils/progressService';
+
+interface QuranAyah {
+  text: string;
+  translation: string;
+  surah: string;
+  number: string;
+  audioUrl: string;
+}
+
+const CURATED_AYAHs: QuranAyah[] = [
+  {
+    text: "وَقُل رَّبِّ زِدْنِي عِلْمًا",
+    translation: "Et dis : « Ô mon Seigneur, accroît mes connaissances ! »",
+    surah: "Sourate Taha",
+    number: "20:114",
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2481.mp3"
+  },
+  {
+    text: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+    translation: "À côté de la difficulté est certes la facilité.",
+    surah: "Sourate Ash-Sharh",
+    number: "94:6",
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6102.mp3"
+  },
+  {
+    text: "فَاذْكُرُونِي أَذْكُرْكُمْ",
+    translation: "Souvenez-vous de Moi, Je me souviendrai de vous.",
+    surah: "Sourate Al-Baqara",
+    number: "2:152",
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/159.mp3"
+  },
+  {
+    text: "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ",
+    translation: "Et quand Mes serviteurs te demandent après Moi... alors Je suis tout proche.",
+    surah: "Sourate Al-Baqara",
+    number: "2:186",
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/193.mp3"
+  },
+  {
+    text: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
+    translation: "Certes, Allah est avec ceux qui sont patients.",
+    surah: "Sourate Al-Baqara",
+    number: "2:153",
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/160.mp3"
+  }
+];
 
 interface HomeProps {
   setPage: (page: PageType) => void;
@@ -37,6 +84,73 @@ export function Home({ setPage, playlists }: HomeProps) {
   const { user } = useAuth();
   const [userProgress, setUserProgress] = useState<UserProgressMap>({});
   const [learnerCount, setLearnerCount] = useState(1482);
+  
+  // Verset du Jour State
+  const [currentAyah, setCurrentAyah] = useState<QuranAyah>(() => {
+    const day = new Date().getDate();
+    return CURATED_AYAHs[day % CURATED_AYAHs.length];
+  });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [currentAyah]);
+
+  const handlePlayPause = () => {
+    if (!audioRef.current) {
+      setAudioLoading(true);
+      const audio = new Audio(currentAyah.audioUrl);
+      audioRef.current = audio;
+
+      audio.addEventListener('canplaythrough', () => {
+        setAudioLoading(false);
+        audio.play().then(() => setIsPlaying(true)).catch(e => {
+          console.error("Audio play failed:", e);
+          setIsPlaying(false);
+        });
+      });
+
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false);
+      });
+
+      audio.addEventListener('error', () => {
+        setAudioLoading(false);
+        setIsPlaying(false);
+        alert("Impossible de charger la récitation audio.");
+      });
+    } else {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+      }
+    }
+  };
+
+  const handleNextAyah = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setIsPlaying(false);
+    setAudioLoading(false);
+    
+    let nextIndex;
+    do {
+      nextIndex = Math.floor(Math.random() * CURATED_AYAHs.length);
+    } while (CURATED_AYAHs[nextIndex].number === currentAyah.number);
+    
+    setCurrentAyah(CURATED_AYAHs[nextIndex]);
+  };
 
   // Animate learner count slightly to simulate active users
   useEffect(() => {
@@ -174,6 +288,75 @@ export function Home({ setPage, playlists }: HomeProps) {
           <div className="flex items-center gap-2 text-sm text-daara-gold font-bold group-hover:translate-x-1 transition-transform shrink-0">
             <span>Relever le défi</span>
             <ArrowRight className="w-4 h-4" />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Verset du Jour Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="bg-daara-surface border border-daara-gold/20 rounded-3xl p-6 sm:p-8 mb-12 shadow-xl relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-48 h-48 bg-daara-gold/5 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="flex items-center justify-between mb-4 border-b border-daara-gold/10 pb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-daara-gold shrink-0" />
+            <h3 className="font-serif font-bold text-lg text-daara-text">Verset du Jour (Ayah)</h3>
+          </div>
+          
+          <button 
+            onClick={handleNextAyah}
+            className="p-2 hover:bg-daara-gold/10 text-daara-text-muted hover:text-daara-gold rounded-full transition-colors flex items-center gap-1 text-xs font-semibold"
+            title="Autre verset"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Autre verset</span>
+          </button>
+        </div>
+        
+        <div className="space-y-6 text-center py-2">
+          <p className="text-2xl sm:text-3xl font-serif text-daara-text leading-loose tracking-wide select-all font-semibold" dir="rtl">
+            {currentAyah.text}
+          </p>
+          
+          <p className="text-sm sm:text-base text-daara-text-muted leading-relaxed max-w-xl mx-auto italic">
+            « {currentAyah.translation} »
+          </p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-daara-gold/10">
+            <span className="text-xs font-semibold text-daara-gold uppercase tracking-wider">
+              {currentAyah.surah} • Verset {currentAyah.number}
+            </span>
+            
+            <button
+              onClick={handlePlayPause}
+              disabled={audioLoading}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-bold text-xs transition-all ${
+                isPlaying 
+                  ? 'bg-daara-gold/20 text-daara-gold border border-daara-gold' 
+                  : 'bg-daara-gold text-daara-bg hover:bg-yellow-500'
+              } cursor-pointer`}
+            >
+              {audioLoading ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Chargement...</span>
+                </>
+              ) : isPlaying ? (
+                <>
+                  <Pause className="w-3.5 h-3.5 fill-current" />
+                  <span>Pause la récitation</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Écouter la récitation</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </motion.div>

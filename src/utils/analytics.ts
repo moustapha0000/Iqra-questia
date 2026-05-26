@@ -64,3 +64,24 @@ export function startPageTimer(): () => number {
   const start = Date.now();
   return () => Math.round((Date.now() - start) / 1000);
 }
+
+/**
+ * Records the duration spent on a page to Firestore.
+ * Updates totalDuration and durationCount inside the pageview document.
+ */
+export async function recordPageDuration(page: string, durationSeconds: number): Promise<void> {
+  if (durationSeconds <= 0 || durationSeconds > 86400) return; // ignore invalid values
+  try {
+    const dateKey = today();
+    const docId = `${dateKey}_${page}`;
+    const ref = doc(db, 'analytics_pageviews', docId);
+    
+    // We use setDoc with merge to avoid overwriting page view counts if recorded first
+    await setDoc(ref, {
+      totalDuration: increment(durationSeconds),
+      durationCount: increment(1)
+    }, { merge: true });
+  } catch (e) {
+    // Fail silently
+  }
+}
