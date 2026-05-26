@@ -26,7 +26,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [audioSrc, setAudioSrc] = useState('https://download.quranicaudio.com/quran/mishaari_raashid_al_3afaasee/002.mp3'); // Default to Al-Baqarah for Verset du Jour
+  const [audioSrc, setAudioSrc] = useState(''); // Default to empty, set dynamically by components
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {

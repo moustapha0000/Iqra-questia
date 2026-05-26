@@ -38,10 +38,10 @@ const CURATED_AYAHs: QuranAyah[] = [
     number: "20:114",
     audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2481.mp3",
     segments: [
-      { arabic: "وَقُل", transliteration: "Wa qul", translation: "Et dis", start: 0.0, end: 1.2 },
-      { arabic: "رَّبِّ", transliteration: "rabbi", translation: "Ô mon Seigneur", start: 1.2, end: 2.2 },
-      { arabic: "زِدْنِي", transliteration: "zidnī", translation: "accroît mes", start: 2.2, end: 3.5 },
-      { arabic: "عِلْمًا", transliteration: "'ilmā", translation: "connaissances", start: 3.5, end: 5.5 }
+      { arabic: "وَقُل", transliteration: "Wa qul", translation: "Et dis", start: 0.8, end: 1.8 },
+      { arabic: "رَّبِّ", transliteration: "rabbi", translation: "Ô mon Seigneur", start: 1.8, end: 2.8 },
+      { arabic: "زِدْنِي", transliteration: "zidnī", translation: "accroît mes", start: 2.8, end: 4.2 },
+      { arabic: "عِلْمًا", transliteration: "'ilmā", translation: "connaissances", start: 4.2, end: 6.2 }
     ]
   },
   {
@@ -52,10 +52,10 @@ const CURATED_AYAHs: QuranAyah[] = [
     number: "94:6",
     audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6102.mp3",
     segments: [
-      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.0, end: 1.0 },
-      { arabic: "مَعَ", transliteration: "ma'a", translation: "avec", start: 1.0, end: 1.6 },
-      { arabic: "الْعُسْرِ", transliteration: "al-'usri", translation: "la difficulté", start: 1.6, end: 2.8 },
-      { arabic: "يُسْرًا", transliteration: "yusrā", translation: "une facilité", start: 2.8, end: 4.5 }
+      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.6, end: 1.5 },
+      { arabic: "مَعَ", transliteration: "ma'a", translation: "avec", start: 1.5, end: 2.0 },
+      { arabic: "الْعُسْرِ", transliteration: "al-'usri", translation: "la difficulté", start: 2.0, end: 3.0 },
+      { arabic: "يُسْرًا", transliteration: "yusrā", translation: "une facilité", start: 3.0, end: 5.0 }
     ]
   },
   {
@@ -66,8 +66,8 @@ const CURATED_AYAHs: QuranAyah[] = [
     number: "2:152",
     audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/159.mp3",
     segments: [
-      { arabic: "فَاذْكُرُونِي", transliteration: "Fadhkurūnī", translation: "Souvenez-vous de Moi", start: 0.0, end: 2.5 },
-      { arabic: "أَذْكُرْكُمْ", transliteration: "adhkurkum", translation: "Je me souviendrai de vous", start: 2.5, end: 5.5 }
+      { arabic: "فَاذْكُرُونِي", transliteration: "Fadhkurūnī", translation: "Souvenez-vous de Moi", start: 0.8, end: 3.2 },
+      { arabic: "أَذْكُرْكُمْ", transliteration: "adhkurkum", translation: "Je me souviendrai de vous", start: 3.2, end: 6.0 }
     ]
   },
   {
@@ -78,10 +78,10 @@ const CURATED_AYAHs: QuranAyah[] = [
     number: "2:153",
     audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/160.mp3",
     segments: [
-      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.0, end: 1.2 },
-      { arabic: "اللَّهَ", transliteration: "Allāha", translation: "Allah", start: 1.2, end: 2.2 },
-      { arabic: "مَعَ", transliteration: "ma'a", translation: "est avec", start: 2.2, end: 2.8 },
-      { arabic: "الصَّابِرِينَ", transliteration: "as-sābirīn", translation: "les patients", start: 2.8, end: 5.0 }
+      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.7, end: 1.7 },
+      { arabic: "اللَّهَ", transliteration: "Allāha", translation: "Allah", start: 1.7, end: 2.7 },
+      { arabic: "مَعَ", transliteration: "ma'a", translation: "est avec", start: 2.7, end: 3.2 },
+      { arabic: "الصَّابِرِينَ", transliteration: "as-sābirīn", translation: "les patients", start: 3.2, end: 5.5 }
     ]
   },
   {
@@ -92,9 +92,9 @@ const CURATED_AYAHs: QuranAyah[] = [
     number: "1:6",
     audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6.mp3",
     segments: [
-      { arabic: "اهْدِنَا", transliteration: "Ihdinā", translation: "Guide-nous", start: 0.0, end: 1.6 },
-      { arabic: "الصِّرَاطَ", transliteration: "as-sirāta", translation: "dans le chemin", start: 1.6, end: 2.8 },
-      { arabic: "الْمُسْتَقِيمَ", transliteration: "al-mustaqīm", translation: "droit", start: 2.8, end: 5.5 }
+      { arabic: "اهْدِنَا", transliteration: "Ihdinā", translation: "Guide-nous", start: 0.6, end: 2.0 },
+      { arabic: "الصِّرَاطَ", transliteration: "as-sirāta", translation: "dans le chemin", start: 2.0, end: 3.2 },
+      { arabic: "الْمُسْتَقِيمَ", transliteration: "al-mustaqīm", translation: "droit", start: 3.2, end: 5.5 }
     ]
   }
 ];
@@ -134,7 +134,21 @@ export function Home({ setPage, playlists }: HomeProps) {
     return CURATED_AYAHs[day % CURATED_AYAHs.length];
   });
   
-  const { isPlaying, currentTime, togglePlay, setAudioSource, audioSrc } = useAudio();
+  const { isPlaying, currentTime, togglePlay, setAudioSource, audioSrc, seek } = useAudio();
+  
+  const handleWordClick = (start: number) => {
+    if (audioSrc !== currentAyah.audioUrl) {
+      setAudioSource(currentAyah.audioUrl);
+      setTimeout(() => {
+        seek(start);
+        if (!isPlaying) togglePlay();
+      }, 150);
+    } else {
+      seek(start);
+      if (!isPlaying) togglePlay();
+    }
+  };
+
   const isThisAyahPlaying = isPlaying && audioSrc === currentAyah.audioUrl;
   const audioLoading = false; // Simplified for global context
 
@@ -338,21 +352,25 @@ export function Home({ setPage, playlists }: HomeProps) {
             {currentAyah.segments.map((seg, idx) => {
               const isActive = isThisAyahPlaying && currentTime >= seg.start && currentTime <= seg.end;
               return (
-                <motion.div
+                <motion.button
                   key={idx}
+                  onClick={() => handleWordClick(seg.start)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   animate={{
                     scale: isActive ? 1.12 : 1.0,
                     y: isActive ? -4 : 0
                   }}
-                  className={`px-4 py-3 rounded-2xl border transition-all duration-300 ${
+                  className={`px-4 py-3 rounded-2xl border transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-daara-gold/40 select-none ${
                     isActive
                       ? 'bg-daara-gold/20 border-daara-gold shadow-lg shadow-daara-gold/15 text-daara-gold-light'
-                      : 'bg-daara-bg/50 border-daara-gold/10 text-daara-text'
+                      : 'bg-daara-bg/50 border-daara-gold/10 text-daara-text hover:border-daara-gold/45 hover:bg-daara-surface/40'
                   }`}
+                  title="Cliquer pour écouter ce mot"
                 >
                   <p className="text-2xl sm:text-3xl font-serif font-bold text-center leading-loose">{seg.arabic}</p>
                   <p className="text-[10px] text-center text-daara-text-muted mt-1 font-mono uppercase tracking-wider">{seg.transliteration}</p>
-                </motion.div>
+                </motion.button>
               );
             })}
           </div>

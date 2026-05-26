@@ -13,7 +13,7 @@ import { Chatbot } from './components/Chatbot';
 import { OnboardingModal } from './components/OnboardingModal';
 
 import { playlists } from './data';
-import { AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, Loader2 } from 'lucide-react';
 import { seedPlaylistsIfEmpty, onPlaylistsChanged, playlistsToMap } from './utils/playlistService';
 
@@ -142,9 +142,18 @@ export default function App() {
     <div className="min-h-screen flex flex-col font-sans selection:bg-daara-gold/30 selection:text-daara-bg">
       <Header currentPage={currentPage} setPage={setPage} playlists={dynamicPlaylists} />
       
-      <main className="flex-grow px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
+      <main className="flex-grow px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto flex flex-col justify-stretch">
         <AnimatePresence mode="wait">
-          {renderPage()}
+          <motion.div
+            key={currentPage}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.2 }}
+            className="w-full flex-grow flex flex-col"
+          >
+            {renderPage()}
+          </motion.div>
         </AnimatePresence>
       </main>
 

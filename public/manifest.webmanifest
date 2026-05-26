@@ -1,0 +1,17 @@
+{
+  "name": "Iqra Quest",
+  "short_name": "Iqra Quest",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1910",
+  "theme_color": "#0a1910",
+  "description": "Plateforme interactive d'apprentissage de l'Islam, du Coran, des Hadiths et du Fiqh.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
