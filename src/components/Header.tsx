@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User, Bell, Sliders, ClipboardList } from 'lucide-react';
-import { PageType } from '../types';
+import { PageType, PlaylistInfo } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
 import { useAuth } from '../contexts/AuthContext';
 import { SearchBar } from './SearchBar';
 
+const PLAYLIST_ICONS: Record<string, React.ElementType> = {
+  fondements: BookOpen,
+  piliers: Star,
+  fiqh: BookText,
+  hadiths: MessageCircle,
+  burdah: Heart,
+  prophetes: Users,
+};
+
 interface HeaderProps {
   currentPage: PageType;
   setPage: (page: PageType) => void;
   startTutorial?: () => void;
+  playlists?: Record<string, PlaylistInfo>;
 }
 
-export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
+export function Header({ currentPage, setPage, startTutorial, playlists = {} }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
@@ -104,16 +114,21 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
 
   const navItems: { id: PageType; label: string; icon: React.ElementType }[] = [
     { id: 'home', label: 'Accueil', icon: Home },
-    { id: 'fondements', label: 'Fondements', icon: BookOpen },
-    { id: 'piliers', label: 'Piliers', icon: Star },
-    { id: 'fiqh', label: 'Fiqh', icon: BookText },
-    { id: 'hadiths', label: 'Hadiths', icon: MessageCircle },
-    { id: 'burdah', label: 'Burdah', icon: Heart },
-    { id: 'prophetes', label: 'Prophètes', icon: Users },
+  ];
+
+  Object.entries(playlists).forEach(([key, info]) => {
+    navItems.push({
+      id: key,
+      label: info.title.split(' (')[0],
+      icon: PLAYLIST_ICONS[key] || BookOpen,
+    });
+  });
+
+  navItems.push(
     { id: 'quiz', label: 'Quiz', icon: HelpCircle },
     { id: 'forum', label: 'Forum', icon: MessageCircle },
-    { id: 'apropos', label: 'À propos', icon: Info },
-  ];
+    { id: 'apropos', label: 'À propos', icon: Info }
+  );
 
   if (isAdmin) {
     navItems.push({ id: 'admin', label: 'Admin 👑', icon: Sliders });

@@ -51,8 +51,7 @@ export default function App() {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '') as PageType;
       const validPages = [
-        'home', 'fondements', 'piliers', 'fiqh', 'hadiths', 'burdah', 'prophetes', 
-        'apropos', 'quiz', 'forum', 'dashboard', 'admin'
+        'home', 'apropos', 'quiz', 'forum', 'dashboard', 'admin'
       ];
       if (hash && (validPages.includes(hash) || dynamicPlaylists[hash])) {
         setCurrentPage(hash);
@@ -123,7 +122,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-daara-gold/30 selection:text-daara-bg">
-      <Header currentPage={currentPage} setPage={setPage} />
+      <Header currentPage={currentPage} setPage={setPage} playlists={dynamicPlaylists} />
       
       <main className="flex-grow px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
