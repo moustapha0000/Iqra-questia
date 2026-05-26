@@ -18,7 +18,8 @@ import {
   savePlaylist,
   deletePlaylistDoc,
   onPlaylistsChanged,
-  fetchPlaylists as fetchPlaylistsFromFirestore
+  fetchPlaylists as fetchPlaylistsFromFirestore,
+  seedPlaylistsIfEmpty
 } from '../utils/playlistService';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -177,6 +178,9 @@ export function Admin() {
 
   useEffect(() => {
     if (!user || !isAdmin) return;
+
+    // Automatically seed default playlists if database is empty on admin login
+    seedPlaylistsIfEmpty();
 
     // Real-time playlists sync
     const unsubPlaylists = onPlaylistsChanged((docs) => {
@@ -601,6 +605,22 @@ export function Admin() {
                   <div className="xl:col-span-3 space-y-4">
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-bold text-daara-text">{playlists.length} playlist{playlists.length > 1 ? 's' : ''}</h2>
+                      <button
+                        onClick={async () => {
+                          if (confirm("Importer les leçons/playlists par défaut si elles ne sont pas déjà présentes ?")) {
+                            try {
+                              await seedPlaylistsIfEmpty();
+                              fetchPlaylists();
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }
+                        }}
+                        className="text-xs bg-daara-gold/10 text-daara-gold hover:bg-daara-gold/20 px-3 py-1.5 rounded-xl border border-daara-gold/20 font-semibold transition-colors flex items-center gap-1.5"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Importer par défaut
+                      </button>
                     </div>
                     {playlists.map(p => (
                       <motion.div
@@ -645,9 +665,22 @@ export function Admin() {
                       </motion.div>
                     ))}
                     {playlists.length === 0 && (
-                      <div className="text-center py-16 bg-daara-surface border border-daara-gold/10 rounded-2xl">
+                      <div className="text-center py-16 bg-daara-surface border border-daara-gold/10 rounded-2xl px-4">
                         <Video className="w-12 h-12 text-daara-gold/20 mx-auto mb-3" />
-                        <p className="text-daara-text-muted">Aucune playlist. Créez-en une avec le formulaire.</p>
+                        <p className="text-daara-text-muted mb-4">Aucune playlist. Vous pouvez importer les leçons par défaut ou en créer une nouvelle.</p>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await seedPlaylistsIfEmpty();
+                              fetchPlaylists();
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }}
+                          className="px-4 py-2 bg-daara-gold text-daara-bg rounded-xl text-xs font-bold hover:bg-yellow-500 transition-colors"
+                        >
+                          Importer les leçons par défaut
+                        </button>
                       </div>
                     )}
                   </div>
