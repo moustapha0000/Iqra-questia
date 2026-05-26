@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
-import { Flame, Trophy, Award, BookOpen, Trash2, Plus, Edit, Save, X, Calendar, ClipboardList } from 'lucide-react';
+import { Flame, Trophy, Award, BookOpen, Trash2, Plus, Edit, Save, X, Calendar, ClipboardList, Target, Check, Star, ShieldCheck, Heart, Sparkles } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -22,6 +22,64 @@ const BADGES_LIST = [
   { id: 'note_master', name: 'Scribe de la Daara', desc: 'Prendre sa première note d\'étude.', icon: ClipboardList, color: 'from-pink-500 to-rose-500' }
 ];
 
+const OFFERS_LIST = [
+  {
+    id: 'free',
+    name: 'Apprenant',
+    price: '0 €',
+    period: '/ mois',
+    desc: 'Accès complet aux modules de base pour débuter sereinement.',
+    features: [
+      'Accès aux 6 modules de leçons',
+      'Quiz du jour illimités',
+      'Accès au forum public',
+      'Tableau de bord standard'
+    ],
+    cta: 'Plan actuel',
+    popular: false,
+    gradient: 'from-neutral-500/10 to-neutral-600/15 border-white/10 text-neutral-400'
+  },
+  {
+    id: 'etudiant',
+    name: 'Étudiant du Savoir',
+    price: '4,99 €',
+    period: '/ mois',
+    desc: 'Renforcez votre apprentissage avec des fonctionnalités d\'IA avancées.',
+    features: [
+      'Toutes les fonctionnalités gratuites',
+      'Accès prioritaire illimité au Guide IA',
+      'Statistiques d\'étude détaillées',
+      'Badge doré exclusif sur le profil',
+      'Zéro publicité (soutien Daara)'
+    ],
+    cta: 'Soutenir la Daara',
+    popular: true,
+    gradient: 'from-daara-gold/20 to-amber-500/10 border-daara-gold/40 text-daara-gold'
+  },
+  {
+    id: 'protecteur',
+    name: 'Protecteur de la Daara',
+    price: '14,99 €',
+    period: '/ mois',
+    desc: 'Devenez un pilier actif de notre mission de transmission du savoir.',
+    features: [
+      'Tous les avantages d\'Étudiant du Savoir',
+      'Sponsor officiel de la plateforme',
+      'Rapports d\'activité mensuels',
+      'Invitation aux webinaires privés',
+      'Mentorat académique'
+    ],
+    cta: 'Devenir Mécène',
+    popular: false,
+    gradient: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/30 text-emerald-400'
+  }
+];
+
+const getTodayDateKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+};
+
 export function Dashboard() {
   const { user, profile, earnXP, unlockBadge } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -31,6 +89,53 @@ export function Dashboard() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Offers and Goals State
+  const [activePlan, setActivePlan] = useState<string>(() => localStorage.getItem('iq_membership_plan') || 'free');
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [selectedPlanName, setSelectedPlanName] = useState('');
+  const [dailyGoal, setDailyGoal] = useState<number>(() => {
+    return Number(localStorage.getItem('iq_daily_goal_xp') || '30');
+  });
+  const [xpToday, setXpToday] = useState<number>(0);
+
+  // Monitor real-time XP gains today
+  useEffect(() => {
+    if (!profile) return;
+    const dateKey = getTodayDateKey();
+    const storedDate = localStorage.getItem('iq_xp_today_date');
+    const storedXp = Number(localStorage.getItem('iq_xp_today_value') || '0');
+    
+    const prevCumulativeXp = Number(localStorage.getItem('iq_xp_cumulative_prev') || String(profile.xp || 0));
+    localStorage.setItem('iq_xp_cumulative_prev', String(profile.xp || 0));
+
+    if (storedDate !== dateKey) {
+      localStorage.setItem('iq_xp_today_date', dateKey);
+      localStorage.setItem('iq_xp_today_value', '0');
+      setXpToday(0);
+    } else {
+      const diff = (profile.xp || 0) - prevCumulativeXp;
+      if (diff > 0) {
+        const newValue = storedXp + diff;
+        localStorage.setItem('iq_xp_today_value', String(newValue));
+        setXpToday(newValue);
+      } else {
+        setXpToday(storedXp);
+      }
+    }
+  }, [profile?.xp, profile]);
+
+  const handleSupportPlan = (planId: string, planName: string) => {
+    if (planId === 'free') {
+      localStorage.setItem('iq_membership_plan', 'free');
+      setActivePlan('free');
+      return;
+    }
+    localStorage.setItem('iq_membership_plan', planId);
+    setActivePlan(planId);
+    setSelectedPlanName(planName);
+    setShowSupportModal(true);
+  };
 
   // Load notes from Firestore
   useEffect(() => {
@@ -188,6 +293,11 @@ export function Dashboard() {
                       Administrateur
                     </span>
                   )}
+                  {activePlan !== 'free' && (
+                    <span className="bg-gradient-to-r from-daara-gold to-yellow-500 text-daara-bg border border-daara-gold/30 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-md animate-pulse">
+                      ★ {activePlan === 'etudiant' ? 'Étudiant du Savoir' : 'Protecteur de la Daara'}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -243,6 +353,55 @@ export function Dashboard() {
           
           {/* Left Column: Badges / Trophies */}
           <div className="lg:col-span-1 space-y-6">
+            {/* Objectif Quotidien Widget */}
+            <div className="bg-daara-surface rounded-3xl p-6 border border-daara-gold/20 shadow-xl space-y-5">
+              <h2 className="text-2xl font-serif font-bold text-daara-text flex items-center gap-3">
+                <Target className="w-6 h-6 text-daara-gold" />
+                Objectif Quotidien
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-daara-text-muted">Aujourd'hui :</span>
+                  <span className="font-bold text-daara-gold">{xpToday} / {dailyGoal} XP</span>
+                </div>
+                
+                {/* Progress bar */}
+                <div className="w-full h-3 bg-daara-bg border border-daara-gold/15 rounded-full overflow-hidden p-[1px]">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (xpToday / dailyGoal) * 100)}%` }}
+                    className="h-full bg-gradient-to-r from-daara-gold to-amber-500 rounded-full"
+                    transition={{ type: 'spring', damping: 20 }}
+                  />
+                </div>
+
+                {/* Speed Selector */}
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  {[
+                    { val: 15, label: 'Tranquille' },
+                    { val: 30, label: 'Régulier' },
+                    { val: 60, label: 'Intense' }
+                  ].map(g => (
+                    <button
+                      key={g.val}
+                      onClick={() => {
+                        localStorage.setItem('iq_daily_goal_xp', String(g.val));
+                        setDailyGoal(g.val);
+                      }}
+                      className={`py-2 px-1 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                        dailyGoal === g.val 
+                          ? 'bg-daara-gold text-daara-bg border-daara-gold shadow-md shadow-daara-gold/10' 
+                          : 'bg-daara-bg/50 border-daara-gold/10 text-daara-text-muted hover:border-daara-gold/25'
+                      }`}
+                    >
+                      {g.label} ({g.val} XP)
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <div className="bg-daara-surface rounded-3xl p-6 border border-daara-gold/20 shadow-xl">
               <h2 className="text-2xl font-serif font-bold text-daara-text mb-6 flex items-center gap-3">
                 <Award className="w-6 h-6 text-daara-gold" />
@@ -433,7 +592,117 @@ export function Dashboard() {
 
         </div>
 
+        {/* ══ SECTION MEMBRES & OFFRES DE SOUTIEN ════════════════════ */}
+        <div className="bg-daara-surface rounded-3xl p-6 md:p-8 border border-daara-gold/20 shadow-xl space-y-8">
+          <div className="text-center max-w-xl mx-auto space-y-3">
+            <h2 className="text-3xl font-serif font-bold text-daara-text">Soutenir Iqra Quest</h2>
+            <p className="text-sm text-daara-text-muted leading-relaxed">
+              Iqra Quest est une plateforme gratuite. Vos contributions aident à financer le serveur, l'API d'IA et le développement de cours interactifs.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {OFFERS_LIST.map((plan) => {
+              const isActive = activePlan === plan.id;
+              return (
+                <div 
+                  key={plan.id}
+                  className={`bg-daara-bg/40 border rounded-3xl p-6 flex flex-col justify-between relative transition-all duration-300 hover:-translate-y-1 ${
+                    plan.popular ? 'ring-2 ring-daara-gold' : ''
+                  }`}
+                  style={{
+                    borderColor: isActive ? 'rgba(229,184,92,0.6)' : 'rgba(229,184,92,0.1)'
+                  }}
+                >
+                  {plan.popular && (
+                    <span className="absolute top-0 right-6 -translate-y-1/2 bg-daara-gold text-daara-bg text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md">
+                      Le plus populaire
+                    </span>
+                  )}
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-serif font-bold text-daara-text">{plan.name}</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-daara-gold">{plan.price}</span>
+                      <span className="text-xs text-daara-text-muted">{plan.period}</span>
+                    </div>
+                    <p className="text-xs text-daara-text-muted leading-relaxed min-h-[40px]">{plan.desc}</p>
+                    
+                    <div className="w-full h-px bg-daara-gold/10 my-2" />
+                    
+                    <ul className="space-y-2.5 text-xs text-daara-text">
+                      {plan.features.map((f, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Check className="w-3.5 h-3.5 text-daara-gold shrink-0 mt-0.5" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <button
+                    onClick={() => handleSupportPlan(plan.id, plan.name)}
+                    disabled={isActive && plan.id === 'free'}
+                    className={`w-full py-3 rounded-xl text-xs font-bold transition-all mt-6 ${
+                      isActive
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : plan.popular
+                        ? 'bg-daara-gold text-daara-bg hover:bg-yellow-500 shadow-lg shadow-daara-gold/15'
+                        : 'bg-daara-surface border border-daara-gold/20 text-daara-gold hover:bg-daara-gold/10'
+                    } disabled:opacity-50`}
+                  >
+                    {isActive ? '✓ Plan Actif' : plan.cta}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
       </div>
+
+      {/* modal de remerciement simulation */}
+      <AnimatePresence>
+        {showSupportModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowSupportModal(false)}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-daara-surface border border-daara-gold/20 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative"
+            >
+              <div className="w-16 h-16 bg-gradient-to-tr from-daara-gold to-yellow-500 rounded-full flex items-center justify-center text-daara-bg mx-auto shadow-lg shadow-daara-gold/20 animate-bounce">
+                <Sparkles className="w-8 h-8 fill-current" />
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-2xl font-serif font-bold text-daara-text">BarakAllahu Feek ! 🤲</h3>
+                <p className="text-xs text-daara-gold font-bold uppercase tracking-widest">
+                  Abonnement activé : {selectedPlanName}
+                </p>
+                <p className="text-sm text-daara-text-muted leading-relaxed">
+                  Merci infiniment pour votre soutien à Iqra Quest. Votre contribution permet de maintenir nos services et de propager le savoir bénéfique. Que Dieu vous récompense !
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowSupportModal(false)}
+                className="w-full py-3 bg-daara-gold text-daara-bg rounded-xl text-xs font-bold hover:bg-yellow-500 transition-colors shadow-md"
+              >
+                Fermer & Continuer
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
