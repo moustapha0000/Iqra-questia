@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { Flame, Trophy, Award, BookOpen, Trash2, Plus, Edit, Save, X, Calendar, ClipboardList } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, query, where, orderBy, onSnapshot, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 interface Note {
   id: string;
@@ -30,59 +32,72 @@ export function Dashboard() {
   const [editContent, setEditContent] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // Load notes from localStorage
+  // Load notes from Firestore
   useEffect(() => {
-    if (user) {
-      const savedNotes = localStorage.getItem(`iqra_notes_${user.uid}`);
-      if (savedNotes) {
-        setNotes(JSON.parse(savedNotes));
-      } else {
-        setNotes([]);
-      }
-    }
+    if (!user) return;
+    
+    const q = query(
+      collection(db, 'user_notes'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const loadedNotes: Note[] = snapshot.docs.map(d => {
+        const data = d.data();
+        const dateObj = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+        return {
+          id: d.id,
+          title: data.title || '',
+          content: data.content || '',
+          createdAt: dateObj.toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          })
+        };
+      });
+      setNotes(loadedNotes);
+    }, (error) => {
+      console.error("Error loading notes from Firestore:", error);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
-  // Save notes to localStorage
-  const saveNotes = (updatedNotes: Note[]) => {
-    if (user) {
-      localStorage.setItem(`iqra_notes_${user.uid}`, JSON.stringify(updatedNotes));
-      setNotes(updatedNotes);
-    }
-  };
-
-  const handleAddNote = (e: React.FormEvent) => {
+  const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!noteTitle.trim() || !noteContent.trim() || !user) return;
 
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: noteTitle.trim(),
-      content: noteContent.trim(),
-      createdAt: new Date().toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      })
-    };
+    try {
+      await addDoc(collection(db, 'user_notes'), {
+        userId: user.uid,
+        title: noteTitle.trim(),
+        content: noteContent.trim(),
+        createdAt: serverTimestamp()
+      });
 
-    const updatedNotes = [newNote, ...notes];
-    saveNotes(updatedNotes);
-    
-    setNoteTitle('');
-    setNoteContent('');
-    setShowAddForm(false);
+      setNoteTitle('');
+      setNoteContent('');
+      setShowAddForm(false);
 
-    // XP & Badge Rewards for writing first note
-    earnXP(15);
-    if (profile && !profile.badges.includes('note_master')) {
-      unlockBadge('note_master');
+      // XP & Badge Rewards for writing first note
+      earnXP(15);
+      if (profile && !profile.badges?.includes('note_master')) {
+        unlockBadge('note_master');
+      }
+    } catch (e) {
+      console.error("Error saving note to Firestore:", e);
     }
   };
 
-  const handleDeleteNote = (id: string) => {
+  const handleDeleteNote = async (id: string) => {
     if (confirm('Voulez-vous supprimer cette note ?')) {
-      const updatedNotes = notes.filter(n => n.id !== id);
-      saveNotes(updatedNotes);
+      try {
+        await deleteDoc(doc(db, 'user_notes', id));
+      } catch (e) {
+        console.error("Error deleting note from Firestore:", e);
+      }
     }
   };
 
@@ -92,18 +107,18 @@ export function Dashboard() {
     setEditContent(note.content);
   };
 
-  const handleSaveEdit = (id: string) => {
+  const handleSaveEdit = async (id: string) => {
     if (!editTitle.trim() || !editContent.trim()) return;
 
-    const updatedNotes = notes.map(n => {
-      if (n.id === id) {
-        return { ...n, title: editTitle.trim(), content: editContent.trim() };
-      }
-      return n;
-    });
-
-    saveNotes(updatedNotes);
-    setIsEditingNote(null);
+    try {
+      await updateDoc(doc(db, 'user_notes', id), {
+        title: editTitle.trim(),
+        content: editContent.trim()
+      });
+      setIsEditingNote(null);
+    } catch (e) {
+      console.error("Error updating note in Firestore:", e);
+    }
   };
 
   if (!user || !profile) {

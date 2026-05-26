@@ -14,6 +14,12 @@ import {
   Youtube, Image, Link2, FileText, Crown, Ban, RefreshCw,
   ArrowUpRight, ArrowDownRight, Sliders
 } from 'lucide-react';
+import {
+  savePlaylist,
+  deletePlaylistDoc,
+  onPlaylistsChanged,
+  fetchPlaylists as fetchPlaylistsFromFirestore
+} from '../utils/playlistService';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 interface Playlist {
@@ -164,16 +170,18 @@ export function Admin() {
 
   // ── All hooks before any conditional ────────────────────────────
   const fetchPlaylists = useCallback(() => {
-    fetch('/api/playlists')
-      .then(r => r.json())
-      .then(data => { if (Array.isArray(data)) setPlaylists(data); })
+    fetchPlaylistsFromFirestore()
+      .then(data => { if (data) setPlaylists(data); })
       .catch(console.error);
   }, []);
 
   useEffect(() => {
     if (!user || !isAdmin) return;
 
-    fetchPlaylists();
+    // Real-time playlists sync
+    const unsubPlaylists = onPlaylistsChanged((docs) => {
+      setPlaylists(docs);
+    });
 
     // Users
     const unsubUsers = onSnapshot(collection(db, 'users'), snap => {
@@ -215,8 +223,8 @@ export function Admin() {
     };
     loadAnalytics();
 
-    return () => { unsubUsers(); unsubPosts(); unsubComments(); };
-  }, [user, isAdmin, fetchPlaylists]);
+    return () => { unsubPlaylists(); unsubUsers(); unsubPosts(); unsubComments(); };
+  }, [user, isAdmin]);
 
   // ─────────────────────────────────────────────────────────────────
   // Access denied screen (AFTER all hooks)
@@ -256,17 +264,17 @@ export function Admin() {
     if (!playlistForm.key || !playlistForm.id || !playlistForm.title) return;
     setPlaylistSaving(true);
     try {
-      const payload = { ...playlistForm, key: playlistForm.key.trim().toLowerCase() };
-      const res = await fetch('/api/playlists', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-        fetchPlaylists();
-        setPlaylistForm({ key: '', id: '', title: '', desc: '', thumbnail: '' });
-        setEditingPlaylist(null);
-      }
+      const payload = {
+        key: playlistForm.key.trim().toLowerCase(),
+        id: playlistForm.id.trim(),
+        title: playlistForm.title.trim(),
+        desc: playlistForm.desc.trim(),
+        thumbnail: playlistForm.thumbnail.trim(),
+        order: editingPlaylist ? (editingPlaylist as any).order : playlists.length
+      };
+      await savePlaylist(payload);
+      setPlaylistForm({ key: '', id: '', title: '', desc: '', thumbnail: '' });
+      setEditingPlaylist(null);
     } catch (e) { console.error(e); }
     setPlaylistSaving(false);
   };
@@ -280,9 +288,7 @@ export function Admin() {
   const handleDeletePlaylist = async (key: string) => {
     if (!confirm(`Supprimer la playlist "${key}" ?`)) return;
     try {
-      const res = await fetch(`/api/playlists/${key}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.status === 'success') fetchPlaylists();
+      await deletePlaylistDoc(key);
     } catch (e) { console.error(e); }
   };
 

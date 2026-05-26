@@ -4,6 +4,7 @@ import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
 import { useAuth } from '../contexts/AuthContext';
+import { SearchBar } from './SearchBar';
 
 interface HeaderProps {
   currentPage: PageType;
@@ -169,6 +170,9 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
                   Installer
                 </button>
               )}
+              <div className="ml-2">
+                <SearchBar setPage={setPage} />
+              </div>
               <button
                 onClick={toggleTheme}
                 className="theme-toggle-btn ml-2 p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface-hover rounded-full transition-colors"
@@ -333,6 +337,7 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
 
             {/* Mobile Menu Button */}
             <div className="flex items-center gap-2 xl:hidden">
+              <SearchBar setPage={setPage} />
               {startTutorial && (
                 <button
                   onClick={startTutorial}

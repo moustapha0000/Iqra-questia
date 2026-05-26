@@ -28,12 +28,15 @@ import {
   ChevronUp,
   Clock,
   Bell,
+  CheckCircle,
 } from 'lucide-react'
+import { getUserProgress, markLessonProgress } from '../utils/progressService'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface VideoSectionProps {
   info: PlaylistInfo
+  playlistKey: string
 }
 
 interface Comment {
@@ -148,8 +151,8 @@ function ComingSoonPlaceholder({ title }: { title: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function VideoSection({ info }: VideoSectionProps) {
-  const { user } = useAuth()
+export function VideoSection({ info, playlistKey }: VideoSectionProps) {
+  const { user, earnXP } = useAuth()
 
   // Guard: null/undefined info
   if (!info) {
@@ -171,7 +174,35 @@ export function VideoSection({ info }: VideoSectionProps) {
   const [submitting, setSubmitting] = useState(false)
   const [liked, setLiked] = useState(false)
   const [shareToast, setShareToast] = useState(false)
+  const [completed, setCompleted] = useState(false)
+  const [updatingProgress, setUpdatingProgress] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Fetch progress on mount or info change
+  useEffect(() => {
+    if (!user || !playlistKey) return
+    getUserProgress(user.uid).then(progress => {
+      setCompleted(!!progress[playlistKey]?.completed)
+    })
+  }, [user, playlistKey])
+
+  const handleToggleComplete = async () => {
+    if (!user || !playlistKey || updatingProgress) return
+    setUpdatingProgress(true)
+    try {
+      const nextState = !completed
+      await markLessonProgress(user.uid, playlistKey, nextState)
+      setCompleted(nextState)
+      
+      if (nextState && earnXP) {
+        await earnXP(20) // Earn 20 XP for completing a playlist!
+      }
+    } catch (e) {
+      console.warn('Failed to update progress:', e)
+    } finally {
+      setUpdatingProgress(false)
+    }
+  }
 
   // ── Firestore listener ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -218,7 +249,7 @@ export function VideoSection({ info }: VideoSectionProps) {
       setCommentText('')
       setInputFocused(false)
     } catch (err) {
-      handleFirestoreError(err, OperationType.Write)
+      handleFirestoreError(err, OperationType.WRITE, 'comments')
     } finally {
       setSubmitting(false)
     }
@@ -228,12 +259,12 @@ export function VideoSection({ info }: VideoSectionProps) {
     try {
       await deleteDoc(doc(db, 'comments', commentId))
     } catch (err) {
-      handleFirestoreError(err, OperationType.Delete)
+      handleFirestoreError(err, OperationType.DELETE, `comments/${commentId}`)
     }
   }
 
   function handleShare() {
-    const url = `https://www.youtube.com/playlist?list=${info.id}`
+    const url = window.location.href;
     navigator.clipboard.writeText(url).catch(() => {})
     setShareToast(true)
     setTimeout(() => setShareToast(false), 2500)
@@ -314,17 +345,17 @@ export function VideoSection({ info }: VideoSectionProps) {
 
               {/* CTA button */}
               {!isFake && (
-                <motion.a
-                  href={playlistUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <motion.button
+                  onClick={() => {
+                    document.getElementById('player-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-daara-gold text-black font-semibold rounded-full text-sm shadow-lg hover:brightness-110 transition-all"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-daara-gold text-black font-semibold rounded-full text-sm shadow-lg hover:brightness-110 transition-all cursor-pointer"
                 >
                   <Play size={16} fill="black" />
                   Regarder la Playlist
-                </motion.a>
+                </motion.button>
               )}
             </div>
           </div>
@@ -347,7 +378,8 @@ export function VideoSection({ info }: VideoSectionProps) {
             {/* ══════════════════════════════════════════════════════════════
                 2. VIDEO PLAYER CARD
             ══════════════════════════════════════════════════════════════ */}
-            <motion.div
+             <motion.div
+              id="player-section"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl overflow-hidden shadow-2xl border border-daara-gold/20 bg-daara-surface relative"
@@ -379,6 +411,30 @@ export function VideoSection({ info }: VideoSectionProps) {
 
                 {/* Like / share */}
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {user && !isFake && (
+                    <motion.button
+                      whileTap={{ scale: 0.88 }}
+                      onClick={handleToggleComplete}
+                      disabled={updatingProgress}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-semibold transition-all ${
+                        completed
+                          ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400'
+                          : 'border-daara-gold/30 text-daara-gold hover:bg-daara-gold/10'
+                      }`}
+                    >
+                      {completed ? (
+                        <>
+                          <CheckCircle size={14} className="text-emerald-400" />
+                          <span>Terminé</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock size={14} className="text-daara-gold" />
+                          <span>Marquer comme vu</span>
+                        </>
+                      )}
+                    </motion.button>
+                  )}
                   <motion.button
                     whileTap={{ scale: 0.88 }}
                     onClick={() => setLiked((v) => !v)}

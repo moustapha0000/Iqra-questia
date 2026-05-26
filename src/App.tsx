@@ -14,6 +14,7 @@ import { Chatbot } from './components/Chatbot';
 import { playlists } from './data';
 import { AnimatePresence } from 'motion/react';
 import { MessageCircle, Loader2 } from 'lucide-react';
+import { seedPlaylistsIfEmpty, onPlaylistsChanged, playlistsToMap } from './utils/playlistService';
 
 const IqraQuiz = React.lazy(() => import('./iqra-quiz/App'));
 
@@ -21,20 +22,24 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
   const [dynamicPlaylists, setDynamicPlaylists] = useState<Record<string, PlaylistInfo>>(playlists);
 
-  // Fetch dynamic playlists from API on mount
+  // Fetch dynamic playlists from Firestore on mount
   useEffect(() => {
-    fetch('/api/playlists')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const map: Record<string, PlaylistInfo> = {};
-          data.forEach((p: any) => {
-            map[p.key] = { id: p.id, title: p.title, desc: p.desc };
-          });
-          setDynamicPlaylists(map);
-        }
-      })
-      .catch((err) => console.warn('Could not load dynamic playlists, using local fallback:', err));
+    let unsub: (() => void) | undefined;
+
+    const initPlaylists = async () => {
+      await seedPlaylistsIfEmpty();
+      unsub = onPlaylistsChanged((docs) => {
+        setDynamicPlaylists(playlistsToMap(docs));
+      });
+    };
+
+    initPlaylists().catch((err) =>
+      console.warn('Could not load dynamic playlists from Firestore, using local fallback:', err)
+    );
+
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
   // Analytics — record session once and track page views
@@ -71,7 +76,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <Home setPage={setPage} />;
+        return <Home setPage={setPage} playlists={dynamicPlaylists} />;
       case 'apropos':
         return <About />;
       case 'forum':
@@ -88,9 +93,9 @@ export default function App() {
         );
       default:
         if (dynamicPlaylists[currentPage]) {
-          return <VideoSection info={dynamicPlaylists[currentPage]} />;
+          return <VideoSection info={dynamicPlaylists[currentPage]} playlistKey={currentPage} />;
         }
-        return <Home setPage={setPage} />;
+        return <Home setPage={setPage} playlists={dynamicPlaylists} />;
     }
   };
 

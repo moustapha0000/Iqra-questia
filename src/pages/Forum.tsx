@@ -121,7 +121,7 @@ function Avatar({ src, name, size = 32 }: AvatarProps) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function Forum() {
-  const { currentUser } = useAuth()
+  const { user: currentUser } = useAuth()
 
   // UI state
   const [activeChannel, setActiveChannel] = useState('Tout')
@@ -161,7 +161,7 @@ export function Forum() {
         setLoading(false)
       },
       (err) => {
-        handleFirestoreError(err, OperationType.READ)
+        handleFirestoreError(err, OperationType.LIST, 'forum_posts')
         setLoading(false)
       }
     )
@@ -225,7 +225,7 @@ export function Forum() {
         createdAt: serverTimestamp(),
       })
     } catch (err: any) {
-      handleFirestoreError(err, OperationType.WRITE)
+      handleFirestoreError(err, OperationType.WRITE, 'forum_posts')
     } finally {
       setSending(false)
       inputRef.current?.focus()
@@ -238,7 +238,7 @@ export function Forum() {
     try {
       await deleteDoc(doc(db, 'forum_posts', postId))
     } catch (err: any) {
-      handleFirestoreError(err, OperationType.DELETE)
+      handleFirestoreError(err, OperationType.DELETE, `forum_posts/${postId}`)
     }
     setContextMenu(null)
   }, [])
