@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Flame, Trophy, Award, BookOpen, Trash2, Plus, Edit, Save, X, Calendar, ClipboardList, Target, Check, Star, ShieldCheck, Heart, Sparkles } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-
+import { Leaderboard } from '../components/Leaderboard';
 interface Note {
   id: string;
   title: string;
@@ -81,7 +81,7 @@ const getTodayDateKey = () => {
 };
 
 export function Dashboard() {
-  const { user, profile, earnXP, unlockBadge } = useAuth();
+  const { user, profile, earnXP, unlockBadge, updateUserProfile } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
@@ -98,6 +98,12 @@ export function Dashboard() {
     return Number(localStorage.getItem('iq_daily_goal_xp') || '30');
   });
   const [xpToday, setXpToday] = useState<number>(0);
+
+  // Profile Edit State
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editPhotoURL, setEditPhotoURL] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // Monitor real-time XP gains today
   useEffect(() => {
@@ -135,6 +141,28 @@ export function Dashboard() {
     setActivePlan(planId);
     setSelectedPlanName(planName);
     setShowSupportModal(true);
+  };
+
+  const openEditProfile = () => {
+    if (profile) {
+      setEditDisplayName(profile.displayName || '');
+      setEditPhotoURL(profile.photoURL || '');
+      setShowEditProfile(true);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editDisplayName.trim()) return;
+    setIsSavingProfile(true);
+    try {
+      await updateUserProfile(editDisplayName.trim(), editPhotoURL.trim());
+      setShowEditProfile(false);
+    } catch (error) {
+      console.error("Failed to update profile", error);
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   // Load notes from Firestore
@@ -282,7 +310,16 @@ export function Dashboard() {
                 </div>
               )}
               <div>
-                <h1 className="text-3xl md:text-4xl font-serif font-bold text-daara-text">{profile.displayName}</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl md:text-4xl font-serif font-bold text-daara-text">{profile.displayName}</h1>
+                  <button 
+                    onClick={openEditProfile}
+                    className="p-1.5 bg-daara-gold/10 hover:bg-daara-gold/20 text-daara-gold rounded-full transition-colors"
+                    title="Modifier le profil"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                </div>
                 <p className="text-daara-text-muted mt-1">{profile.email}</p>
                 <div className="mt-3 flex flex-wrap gap-2 justify-center md:justify-start">
                   <span className="bg-daara-gold/15 text-daara-gold border border-daara-gold/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -592,6 +629,11 @@ export function Dashboard() {
 
         </div>
 
+        {/* ══ SECTION CLASSEMENT (LEADERBOARD) ════════════════════ */}
+        <div className="mb-12">
+          <Leaderboard />
+        </div>
+
         {/* ══ SECTION MEMBRES & OFFRES DE SOUTIEN ════════════════════ */}
         <div className="bg-daara-surface rounded-3xl p-6 md:p-8 border border-daara-gold/20 shadow-xl space-y-8">
           <div className="text-center max-w-xl mx-auto space-y-3">
@@ -698,6 +740,82 @@ export function Dashboard() {
               >
                 Fermer & Continuer
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+        {showEditProfile && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-daara-surface border border-daara-gold/20 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-serif font-bold text-daara-text">Modifier votre profil</h3>
+                <button 
+                  onClick={() => setShowEditProfile(false)}
+                  className="p-2 text-daara-text-muted hover:text-daara-text bg-daara-bg/50 rounded-full"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-daara-text-muted mb-1">Pseudo</label>
+                  <input
+                    type="text"
+                    value={editDisplayName}
+                    onChange={e => setEditDisplayName(e.target.value)}
+                    className="w-full px-4 py-3 bg-daara-bg border border-daara-gold/20 rounded-xl text-daara-text focus:outline-none focus:border-daara-gold transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-daara-text-muted mb-1">URL de votre photo (Avatar)</label>
+                  <input
+                    type="url"
+                    value={editPhotoURL}
+                    onChange={e => setEditPhotoURL(e.target.value)}
+                    placeholder="https://exemple.com/photo.jpg"
+                    className="w-full px-4 py-3 bg-daara-bg border border-daara-gold/20 rounded-xl text-daara-text focus:outline-none focus:border-daara-gold transition-colors"
+                  />
+                  <p className="text-xs text-daara-text-muted mt-1">Laissez vide ou modifiez le lien pour utiliser un avatar personnalisé.</p>
+                </div>
+                
+                {editPhotoURL && (
+                  <div className="flex justify-center my-4">
+                    <img src={editPhotoURL} alt="Aperçu" className="w-20 h-20 rounded-full border-2 border-daara-gold/50 object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                  </div>
+                )}
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditProfile(false)}
+                    className="flex-1 py-3 bg-daara-bg border border-daara-gold/20 text-daara-text rounded-xl font-bold hover:bg-daara-surface transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingProfile}
+                    className="flex-1 py-3 bg-daara-gold text-daara-bg rounded-xl font-bold hover:bg-yellow-500 transition-colors shadow-md disabled:opacity-50"
+                  >
+                    {isSavingProfile ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </motion.div>
         )}

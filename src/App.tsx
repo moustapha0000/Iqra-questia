@@ -10,6 +10,7 @@ import { Forum } from './pages/Forum';
 import { Dashboard } from './pages/Dashboard';
 import { Admin } from './pages/Admin';
 import { Chatbot } from './components/Chatbot';
+import { OnboardingModal } from './components/OnboardingModal';
 
 import { playlists } from './data';
 import { AnimatePresence } from 'motion/react';
@@ -151,6 +152,9 @@ export default function App() {
 
       {/* Chatbot Oustaz */}
       <Chatbot />
+      
+      {/* Onboarding Modal */}
+      <OnboardingModal />
     </div>
   );
 }

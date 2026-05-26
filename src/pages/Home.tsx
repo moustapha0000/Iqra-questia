@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { PageType, PlaylistInfo } from '../types';
 import { 
   BookOpen, PlayCircle, BookText, Heart, Star, 
@@ -8,6 +8,7 @@ import {
   Play, Pause, Sparkles, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAudio } from '../contexts/AudioContext';
 import { getUserProgress, UserProgressMap } from '../utils/progressService';
 
 interface AyahSegment {
@@ -132,73 +133,38 @@ export function Home({ setPage, playlists }: HomeProps) {
     const day = new Date().getDate();
     return CURATED_AYAHs[day % CURATED_AYAHs.length];
   });
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioLoading, setAudioLoading] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  const { isPlaying, currentTime, togglePlay, setAudioSource, audioSrc } = useAudio();
+  const isThisAyahPlaying = isPlaying && audioSrc === currentAyah.audioUrl;
+  const audioLoading = false; // Simplified for global context
 
   useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, [currentAyah]);
+    // Initialize global audio source if it's empty
+    if (!audioSrc) {
+      setAudioSource(currentAyah.audioUrl);
+    }
+  }, [currentAyah.audioUrl, audioSrc, setAudioSource]);
 
   const handlePlayPause = () => {
-    if (!audioRef.current) {
-      setAudioLoading(true);
-      const audio = new Audio(currentAyah.audioUrl);
-      audioRef.current = audio;
-
-      audio.addEventListener('canplaythrough', () => {
-        setAudioLoading(false);
-        audio.play().then(() => setIsPlaying(true)).catch(e => {
-          console.error("Audio play failed:", e);
-          setIsPlaying(false);
-        });
-      });
-
-      audio.addEventListener('timeupdate', () => {
-        setCurrentTime(audio.currentTime);
-      });
-
-      audio.addEventListener('ended', () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-      });
-
-      audio.addEventListener('error', () => {
-        setAudioLoading(false);
-        setIsPlaying(false);
-        alert("Impossible de charger la récitation audio.");
-      });
+    if (audioSrc !== currentAyah.audioUrl) {
+      setAudioSource(currentAyah.audioUrl);
+      if (!isPlaying) togglePlay();
     } else {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-      }
+      togglePlay();
     }
   };
 
   const handleNextAyah = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    setIsPlaying(false);
-    setAudioLoading(false);
-    setCurrentTime(0);
+    if (isPlaying) togglePlay();
     
     let nextIndex;
     do {
       nextIndex = Math.floor(Math.random() * CURATED_AYAHs.length);
     } while (CURATED_AYAHs[nextIndex].number === currentAyah.number);
     
-    setCurrentAyah(CURATED_AYAHs[nextIndex]);
+    const nextAyah = CURATED_AYAHs[nextIndex];
+    setCurrentAyah(nextAyah);
+    setAudioSource(nextAyah.audioUrl);
   };
 
   // Animate learner count slightly to simulate active users
@@ -370,7 +336,7 @@ export function Home({ setPage, playlists }: HomeProps) {
           {/* Synchronized Word Segments Grid */}
           <div className="flex flex-row-reverse justify-center flex-wrap gap-3 sm:gap-4 py-4">
             {currentAyah.segments.map((seg, idx) => {
-              const isActive = currentTime >= seg.start && currentTime <= seg.end && isPlaying;
+              const isActive = isThisAyahPlaying && currentTime >= seg.start && currentTime <= seg.end;
               return (
                 <motion.div
                   key={idx}
@@ -395,7 +361,7 @@ export function Home({ setPage, playlists }: HomeProps) {
           <div className="bg-daara-bg/30 rounded-2xl p-4 border border-daara-gold/10 max-w-xl mx-auto space-y-3 min-h-[90px] flex flex-col justify-center">
             <AnimatePresence mode="wait">
               {(() => {
-                const activeSeg = currentAyah.segments.find(s => currentTime >= s.start && currentTime <= s.end && isPlaying);
+                const activeSeg = currentAyah.segments.find(s => isThisAyahPlaying && currentTime >= s.start && currentTime <= s.end);
                 if (activeSeg) {
                   return (
                     <motion.div
@@ -442,7 +408,7 @@ export function Home({ setPage, playlists }: HomeProps) {
               onClick={handlePlayPause}
               disabled={audioLoading}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-bold text-xs transition-all ${
-                isPlaying 
+                isThisAyahPlaying 
                   ? 'bg-daara-gold/20 text-daara-gold border border-daara-gold' 
                   : 'bg-daara-gold text-daara-bg hover:bg-yellow-500'
               } cursor-pointer`}
@@ -452,7 +418,7 @@ export function Home({ setPage, playlists }: HomeProps) {
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                   <span>Chargement...</span>
                 </>
-              ) : isPlaying ? (
+              ) : isThisAyahPlaying ? (
                 <>
                   <Pause className="w-3.5 h-3.5 fill-current" />
                   <span>Pause la récitation</span>

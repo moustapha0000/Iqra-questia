@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User, Bell, Sliders, ClipboardList } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User, Bell, Sliders, ClipboardList, Play, Pause } from 'lucide-react';
 import { PageType, PlaylistInfo } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
 import { useAuth } from '../contexts/AuthContext';
+import { useAudio } from '../contexts/AudioContext';
 import { SearchBar } from './SearchBar';
 
 const PLAYLIST_ICONS: Record<string, React.ElementType> = {
@@ -27,6 +28,7 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const { user, profile, authError, isAdmin, signInWithGoogle, logout } = useAuth();
+  const { isPlaying, togglePlay, audioSrc } = useAudio();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   
@@ -50,7 +52,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
   }, []);
 
   useEffect(() => {
-    // Check local storage or system preference on mount
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light' || savedTheme === 'dark') {
       setTheme(savedTheme);
@@ -77,7 +78,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  // Listen to custom event when a user unlocks a badge
   useEffect(() => {
     const handleBadgeNotif = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -160,7 +160,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
               </span>
             </div>
 
-            {/* Desktop Nav */}
             <nav className="hidden xl:flex items-center gap-1.5">
               {navItems.map((item) => (
                 <button
@@ -175,6 +174,19 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                   {item.label}
                 </button>
               ))}
+              {audioSrc && (
+                <button
+                  onClick={togglePlay}
+                  className={`ml-2 p-2 rounded-full border transition-all ${
+                    isPlaying 
+                      ? 'bg-daara-gold/10 border-daara-gold text-daara-gold' 
+                      : 'bg-daara-surface border-daara-gold/30 text-daara-text-muted hover:text-daara-gold'
+                  }`}
+                  title={isPlaying ? "Mettre en pause" : "Reprendre la lecture"}
+                >
+                  {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                </button>
+              )}
               {deferredPrompt && (
                 <button
                   onClick={handleInstall}
@@ -205,7 +217,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                 </button>
               )}
 
-              {/* Notification Center Bell */}
               {user && (
                 <div className="relative ml-2 notif-container">
                   <button
@@ -350,8 +361,19 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
               )}
             </nav>
 
-            {/* Mobile Menu Button */}
             <div className="flex items-center gap-2 xl:hidden">
+              {audioSrc && (
+                <button
+                  onClick={togglePlay}
+                  className={`p-2 rounded-xl border transition-all ${
+                    isPlaying 
+                      ? 'bg-daara-gold/10 border-daara-gold text-daara-gold' 
+                      : 'bg-daara-surface border-daara-gold/30 text-daara-text-muted'
+                  }`}
+                >
+                  {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+                </button>
+              )}
               <SearchBar setPage={setPage} />
               {startTutorial && (
                 <button
@@ -389,7 +411,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
         </div>
       </header>
 
-      {/* Auth Error Banner */}
       {authError && (
         <div className="fixed top-20 left-0 right-0 z-[99] px-4 sm:px-6">
           <div className="max-w-2xl mx-auto bg-red-500/15 border border-red-500/40 text-red-400 px-6 py-4 rounded-2xl backdrop-blur-lg shadow-xl flex items-start gap-3 animate-pulse">
@@ -408,7 +429,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
         </div>
       )}
 
-      {/* Mobile Nav - Full Screen Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -418,11 +438,9 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed inset-0 z-[100] flex flex-col bg-gradient-to-br from-daara-surface to-daara-bg overflow-hidden"
           >
-            {/* Decorative Background Element */}
             <div className="absolute top-0 right-0 w-full max-w-[500px] aspect-square bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 left-0 w-full max-w-[500px] aspect-square bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none -translate-x-1/2 translate-y-1/2" />
 
-            {/* Top Bar inside Menu */}
             <div className="flex-none flex justify-between items-center px-4 sm:px-6 py-4 sm:py-6 relative z-10">
               <div 
                 className="flex items-center gap-2 cursor-pointer"
@@ -443,7 +461,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
               </button>
             </div>
 
-            {/* Menu Items - Scrollable */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 relative z-10 pb-6 scrollbar-hide">
               <div className="flex flex-col gap-2 sm:gap-4 mt-2">
                 {user ? (

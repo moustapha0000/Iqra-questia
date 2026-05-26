@@ -9,7 +9,6 @@ interface Score {
   playerName: string;
   playerPhoto: string;
   score: number;
-  difficulty: string;
 }
 
 export function Leaderboard() {
@@ -22,15 +21,15 @@ export function Leaderboard() {
     let q;
     if (searchTerm.trim() === '') {
       q = query(
-        collection(db, 'quiz_scores'),
-        orderBy('score', 'desc'),
+        collection(db, 'users'),
+        orderBy('xp', 'desc'),
         limit(50)
       );
     } else {
       q = query(
-        collection(db, 'quiz_scores'),
-        where('playerName', '>=', searchTerm),
-        where('playerName', '<=', searchTerm + '\uf8ff'),
+        collection(db, 'users'),
+        where('displayName', '>=', searchTerm),
+        where('displayName', '<=', searchTerm + '\uf8ff'),
         limit(50)
       );
     }
@@ -38,7 +37,13 @@ export function Leaderboard() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newScores: Score[] = [];
       snapshot.forEach((doc) => {
-        newScores.push({ id: doc.id, ...doc.data() } as Score);
+        const data = doc.data();
+        newScores.push({ 
+          id: doc.id, 
+          playerName: data.displayName || 'Anonyme', 
+          playerPhoto: data.photoURL || '', 
+          score: data.xp || 0 
+        });
       });
       
       if (searchTerm.trim() !== '') {
@@ -49,7 +54,7 @@ export function Leaderboard() {
       setLoading(false);
     }, (error) => {
       setLoading(false);
-      handleFirestoreError(error, OperationType.LIST, 'quiz_scores');
+      handleFirestoreError(error, OperationType.LIST, 'users');
     });
 
     return () => unsubscribe();
