@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import {
-  collection, onSnapshot, doc, updateDoc, deleteDoc,
+  collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc,
   query, orderBy, limit, getCountFromServer, getDocs, where
 } from 'firebase/firestore';
 import {
@@ -151,6 +151,9 @@ export function Admin() {
   const [playlistForm, setPlaylistForm] = useState({ key: '', id: '', title: '', desc: '', thumbnail: '' });
   const [playlistSaving, setPlaylistSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [firestoreStatus, setFirestoreStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
+  const [firestoreStatusMsg, setFirestoreStatusMsg] = useState('');
+  const [playlistCount, setPlaylistCount] = useState<number | null>(null);
 
   // ── Users state ──────────────────────────────────────────────────
   const [usersList, setUsersList] = useState<UserDoc[]>([]);
@@ -873,6 +876,71 @@ export function Admin() {
                 <div className="max-w-xl space-y-6">
                   <div className="bg-daara-surface border border-daara-gold/10 rounded-2xl p-6 space-y-5">
                     <h2 className="text-lg font-bold text-daara-text">Paramètres du site</h2>
+
+                    {/* ── Firestore Diagnostic ── */}
+                    <div className="p-4 bg-daara-bg/50 rounded-xl border border-daara-gold/10 space-y-3">
+                      <p className="font-semibold text-daara-text text-sm">🔧 Diagnostic Firestore</p>
+                      <p className="text-xs text-daara-text-muted">Teste si l'écriture/lecture dans la base de données fonctionne correctement.</p>
+                      
+                      <button
+                        onClick={async () => {
+                          setFirestoreStatus('testing');
+                          setFirestoreStatusMsg('Test en cours...');
+                          try {
+                            // 1. Test write
+                            const testRef = doc(db, 'playlists', '__admin_test__');
+                            await setDoc(testRef, { key: '__admin_test__', id: 'test', title: 'Test Admin', desc: 'Test diagnostic', order: 999 });
+                            
+                            // 2. Test read
+                            const readBack = await getDoc(testRef);
+                            if (!readBack.exists()) {
+                              setFirestoreStatus('error');
+                              setFirestoreStatusMsg('❌ Écriture réussie mais lecture échouée. Vérifiez les règles Firestore.');
+                              return;
+                            }
+                            
+                            // 3. Cleanup: delete test doc
+                            await deleteDoc(testRef);
+                            
+                            // 4. Count playlists
+                            const snap = await getDocs(collection(db, 'playlists'));
+                            setPlaylistCount(snap.size);
+                            
+                            setFirestoreStatus('ok');
+                            setFirestoreStatusMsg(`✅ Firestore fonctionne parfaitement ! ${snap.size} playlist(s) en base.`);
+                          } catch (err: any) {
+                            setFirestoreStatus('error');
+                            const msg = err?.message || String(err);
+                            if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
+                              setFirestoreStatusMsg(`❌ PERMISSION REFUSÉE. Les règles Firestore ne sont pas encore déployées sur le serveur. Vous devez les déployer depuis la console Firebase. Erreur: ${msg}`);
+                            } else {
+                              setFirestoreStatusMsg(`❌ Erreur: ${msg}`);
+                            }
+                          }
+                        }}
+                        disabled={firestoreStatus === 'testing'}
+                        className="w-full py-2.5 bg-blue-600/80 text-white rounded-xl text-sm font-bold hover:bg-blue-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${firestoreStatus === 'testing' ? 'animate-spin' : ''}`} />
+                        {firestoreStatus === 'testing' ? 'Test en cours...' : 'Lancer le diagnostic'}
+                      </button>
+                      
+                      {firestoreStatusMsg && (
+                        <div className={`p-3 rounded-lg text-xs font-medium ${
+                          firestoreStatus === 'ok' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                          : firestoreStatus === 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        }`}>
+                          {firestoreStatusMsg}
+                        </div>
+                      )}
+                      
+                      {playlistCount !== null && (
+                        <p className="text-xs text-daara-text-muted">
+                          📊 Playlists dans Firestore : <span className="font-bold text-daara-gold">{playlistCount}</span>
+                        </p>
+                      )}
+                    </div>
 
                     {/* Maintenance toggle */}
                     <div className="flex items-center justify-between p-4 bg-daara-bg/50 rounded-xl border border-daara-gold/10">

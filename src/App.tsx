@@ -29,7 +29,11 @@ export default function App() {
     const initPlaylists = async () => {
       await seedPlaylistsIfEmpty();
       unsub = onPlaylistsChanged((docs) => {
-        setDynamicPlaylists(playlistsToMap(docs));
+        if (docs.length > 0) {
+          // Only update if Firestore actually has playlists
+          setDynamicPlaylists(playlistsToMap(docs));
+        }
+        // If docs is empty, keep the hardcoded defaults
       });
     };
 
