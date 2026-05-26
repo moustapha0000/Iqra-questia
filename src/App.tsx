@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
+import { recordSession, recordPageView } from './utils/analytics';
 import { PageType, PlaylistInfo } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -35,6 +36,10 @@ export default function App() {
       })
       .catch((err) => console.warn('Could not load dynamic playlists, using local fallback:', err));
   }, []);
+
+  // Analytics — record session once and track page views
+  useEffect(() => { recordSession(); }, []);
+  useEffect(() => { recordPageView(currentPage); }, [currentPage]);
 
   // Handle hash routing
   useEffect(() => {
@@ -96,6 +101,16 @@ export default function App() {
           <IqraQuiz onBack={() => setPage('home')} />
         </Suspense>
         {/* Chatbot Oustaz */}
+        <Chatbot />
+      </div>
+    );
+  }
+
+  // Admin needs full-width layout without the constrained main container
+  if (currentPage === 'admin') {
+    return (
+      <div className="min-h-screen flex flex-col font-sans selection:bg-daara-gold/30 selection:text-daara-bg">
+        <Admin />
         <Chatbot />
       </div>
     );
