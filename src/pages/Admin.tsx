@@ -150,6 +150,7 @@ export function Admin() {
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
   const [playlistForm, setPlaylistForm] = useState({ key: '', id: '', title: '', desc: '', thumbnail: '' });
   const [playlistSaving, setPlaylistSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // ── Users state ──────────────────────────────────────────────────
   const [usersList, setUsersList] = useState<UserDoc[]>([]);
@@ -267,6 +268,7 @@ export function Admin() {
     e.preventDefault();
     if (!playlistForm.key || !playlistForm.id || !playlistForm.title) return;
     setPlaylistSaving(true);
+    setSaveStatus(null);
     try {
       const payload = {
         key: playlistForm.key.trim().toLowerCase(),
@@ -279,7 +281,12 @@ export function Admin() {
       await savePlaylist(payload);
       setPlaylistForm({ key: '', id: '', title: '', desc: '', thumbnail: '' });
       setEditingPlaylist(null);
-    } catch (e) { console.error(e); }
+      setSaveStatus({ type: 'success', message: 'La playlist a été enregistrée avec succès !' });
+      setTimeout(() => setSaveStatus(null), 4000);
+    } catch (err: any) { 
+      console.error(err);
+      setSaveStatus({ type: 'error', message: `Erreur lors de la sauvegarde : ${err?.message || err}` });
+    }
     setPlaylistSaving(false);
   };
 
@@ -291,9 +298,15 @@ export function Admin() {
 
   const handleDeletePlaylist = async (key: string) => {
     if (!confirm(`Supprimer la playlist "${key}" ?`)) return;
+    setSaveStatus(null);
     try {
       await deletePlaylistDoc(key);
-    } catch (e) { console.error(e); }
+      setSaveStatus({ type: 'success', message: 'La playlist a été supprimée avec succès !' });
+      setTimeout(() => setSaveStatus(null), 4000);
+    } catch (err: any) {
+      console.error(err);
+      setSaveStatus({ type: 'error', message: `Erreur de suppression : ${err?.message || err}` });
+    }
   };
 
   // ─────────────────────────────────────────────────────────────────
@@ -539,6 +552,16 @@ export function Admin() {
                         {editingPlaylist ? <Edit className="w-5 h-5 text-daara-gold" /> : <Plus className="w-5 h-5 text-daara-gold" />}
                         {editingPlaylist ? 'Modifier' : 'Nouvelle playlist'}
                       </h2>
+                      {saveStatus && (
+                        <div className={`p-4 mb-4 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                          saveStatus.type === 'success' 
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                            : 'bg-red-500/10 border-red-500/30 text-red-400'
+                        }`}>
+                          {saveStatus.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+                          <span>{saveStatus.message}</span>
+                        </div>
+                      )}
                       <form onSubmit={handleSavePlaylist} className="space-y-4">
                         {[
                           { field: 'key', label: 'Clé URL', placeholder: 'ex: fiqh, prophetes...', disabled: !!editingPlaylist, icon: Link2 },
