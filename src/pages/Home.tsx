@@ -10,49 +10,91 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { getUserProgress, UserProgressMap } from '../utils/progressService';
 
+interface AyahSegment {
+  arabic: string;
+  transliteration: string;
+  translation: string;
+  start: number;
+  end: number;
+}
+
 interface QuranAyah {
   text: string;
   translation: string;
+  transliteration: string;
   surah: string;
   number: string;
   audioUrl: string;
+  segments: AyahSegment[];
 }
 
 const CURATED_AYAHs: QuranAyah[] = [
   {
     text: "وَقُل رَّبِّ زِدْنِي عِلْمًا",
     translation: "Et dis : « Ô mon Seigneur, accroît mes connaissances ! »",
+    transliteration: "Wa qul rabbi zidnī 'ilmā",
     surah: "Sourate Taha",
     number: "20:114",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2481.mp3"
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2481.mp3",
+    segments: [
+      { arabic: "وَقُل", transliteration: "Wa qul", translation: "Et dis", start: 0.0, end: 1.2 },
+      { arabic: "رَّبِّ", transliteration: "rabbi", translation: "Ô mon Seigneur", start: 1.2, end: 2.2 },
+      { arabic: "زِدْنِي", transliteration: "zidnī", translation: "accroît mes", start: 2.2, end: 3.5 },
+      { arabic: "عِلْمًا", transliteration: "'ilmā", translation: "connaissances", start: 3.5, end: 5.5 }
+    ]
   },
   {
     text: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
     translation: "À côté de la difficulté est certes la facilité.",
+    transliteration: "Inna ma'al 'usri yusrā",
     surah: "Sourate Ash-Sharh",
     number: "94:6",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6102.mp3"
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6102.mp3",
+    segments: [
+      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.0, end: 1.0 },
+      { arabic: "مَعَ", transliteration: "ma'a", translation: "avec", start: 1.0, end: 1.6 },
+      { arabic: "الْعُسْرِ", transliteration: "al-'usri", translation: "la difficulté", start: 1.6, end: 2.8 },
+      { arabic: "يُسْرًا", transliteration: "yusrā", translation: "une facilité", start: 2.8, end: 4.5 }
+    ]
   },
   {
     text: "فَاذْكُرُونِي أَذْكُرْكُمْ",
     translation: "Souvenez-vous de Moi, Je me souviendrai de vous.",
+    transliteration: "Fadhkurūnī adhkurkum",
     surah: "Sourate Al-Baqara",
     number: "2:152",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/159.mp3"
-  },
-  {
-    text: "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ",
-    translation: "Et quand Mes serviteurs te demandent après Moi... alors Je suis tout proche.",
-    surah: "Sourate Al-Baqara",
-    number: "2:186",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/193.mp3"
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/159.mp3",
+    segments: [
+      { arabic: "فَاذْكُرُونِي", transliteration: "Fadhkurūnī", translation: "Souvenez-vous de Moi", start: 0.0, end: 2.5 },
+      { arabic: "أَذْكُرْكُمْ", transliteration: "adhkurkum", translation: "Je me souviendrai de vous", start: 2.5, end: 5.5 }
+    ]
   },
   {
     text: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
     translation: "Certes, Allah est avec ceux qui sont patients.",
+    transliteration: "Inna Allāha ma'as-sābirīn",
     surah: "Sourate Al-Baqara",
     number: "2:153",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/160.mp3"
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/160.mp3",
+    segments: [
+      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.0, end: 1.2 },
+      { arabic: "اللَّهَ", transliteration: "Allāha", translation: "Allah", start: 1.2, end: 2.2 },
+      { arabic: "مَعَ", transliteration: "ma'a", translation: "est avec", start: 2.2, end: 2.8 },
+      { arabic: "الصَّابِرِينَ", transliteration: "as-sābirīn", translation: "les patients", start: 2.8, end: 5.0 }
+    ]
+  },
+  {
+    text: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+    translation: "Guide-nous dans le droit chemin.",
+    transliteration: "Ihdinā as-sirāta al-mustaqīm",
+    surah: "Sourate Al-Fatiha",
+    number: "1:6",
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6.mp3",
+    segments: [
+      { arabic: "اهْدِنَا", transliteration: "Ihdinā", translation: "Guide-nous", start: 0.0, end: 1.6 },
+      { arabic: "الصِّرَاطَ", transliteration: "as-sirāta", translation: "dans le chemin", start: 1.6, end: 2.8 },
+      { arabic: "الْمُسْتَقِيمَ", transliteration: "al-mustaqīm", translation: "droit", start: 2.8, end: 5.5 }
+    ]
   }
 ];
 
@@ -92,6 +134,7 @@ export function Home({ setPage, playlists }: HomeProps) {
   });
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -117,8 +160,13 @@ export function Home({ setPage, playlists }: HomeProps) {
         });
       });
 
+      audio.addEventListener('timeupdate', () => {
+        setCurrentTime(audio.currentTime);
+      });
+
       audio.addEventListener('ended', () => {
         setIsPlaying(false);
+        setCurrentTime(0);
       });
 
       audio.addEventListener('error', () => {
@@ -143,6 +191,7 @@ export function Home({ setPage, playlists }: HomeProps) {
     }
     setIsPlaying(false);
     setAudioLoading(false);
+    setCurrentTime(0);
     
     let nextIndex;
     do {
@@ -304,7 +353,7 @@ export function Home({ setPage, playlists }: HomeProps) {
         <div className="flex items-center justify-between mb-4 border-b border-daara-gold/10 pb-4">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-daara-gold shrink-0" />
-            <h3 className="font-serif font-bold text-lg text-daara-text">Verset du Jour (Ayah)</h3>
+            <h3 className="font-serif font-bold text-lg text-daara-text">Récitation Synchronisée</h3>
           </div>
           
           <button 
@@ -318,13 +367,71 @@ export function Home({ setPage, playlists }: HomeProps) {
         </div>
         
         <div className="space-y-6 text-center py-2">
-          <p className="text-2xl sm:text-3xl font-serif text-daara-text leading-loose tracking-wide select-all font-semibold" dir="rtl">
-            {currentAyah.text}
-          </p>
-          
-          <p className="text-sm sm:text-base text-daara-text-muted leading-relaxed max-w-xl mx-auto italic">
-            « {currentAyah.translation} »
-          </p>
+          {/* Synchronized Word Segments Grid */}
+          <div className="flex flex-row-reverse justify-center flex-wrap gap-3 sm:gap-4 py-4">
+            {currentAyah.segments.map((seg, idx) => {
+              const isActive = currentTime >= seg.start && currentTime <= seg.end && isPlaying;
+              return (
+                <motion.div
+                  key={idx}
+                  animate={{
+                    scale: isActive ? 1.12 : 1.0,
+                    y: isActive ? -4 : 0
+                  }}
+                  className={`px-4 py-3 rounded-2xl border transition-all duration-300 ${
+                    isActive
+                      ? 'bg-daara-gold/20 border-daara-gold shadow-lg shadow-daara-gold/15 text-daara-gold-light'
+                      : 'bg-daara-bg/50 border-daara-gold/10 text-daara-text'
+                  }`}
+                >
+                  <p className="text-2xl sm:text-3xl font-serif font-bold text-center leading-loose">{seg.arabic}</p>
+                  <p className="text-[10px] text-center text-daara-text-muted mt-1 font-mono uppercase tracking-wider">{seg.transliteration}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Active Word Translation & Main Translation Display */}
+          <div className="bg-daara-bg/30 rounded-2xl p-4 border border-daara-gold/10 max-w-xl mx-auto space-y-3 min-h-[90px] flex flex-col justify-center">
+            <AnimatePresence mode="wait">
+              {(() => {
+                const activeSeg = currentAyah.segments.find(s => currentTime >= s.start && currentTime <= s.end && isPlaying);
+                if (activeSeg) {
+                  return (
+                    <motion.div
+                      key={activeSeg.arabic}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="text-center space-y-1"
+                    >
+                      <p className="text-[10px] text-daara-gold font-bold uppercase tracking-widest">Mot Récité en Direct :</p>
+                      <p className="text-sm font-semibold text-daara-text">
+                        <span className="text-daara-gold-light font-bold text-base">{activeSeg.arabic}</span>
+                        <span className="text-daara-text-muted font-normal"> ({activeSeg.transliteration}) </span>
+                        = <span className="underline decoration-daara-gold/40 decoration-2">{activeSeg.translation}</span>
+                      </p>
+                    </motion.div>
+                  );
+                }
+                return (
+                  <motion.div
+                    key="default"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center space-y-1.5"
+                  >
+                    <p className="text-xs text-daara-text-muted leading-relaxed font-medium italic">
+                      « {currentAyah.translation} »
+                    </p>
+                    <p className="text-[10px] text-daara-text-muted/60">
+                      ({currentAyah.transliteration})
+                    </p>
+                  </motion.div>
+                );
+              })()}
+            </AnimatePresence>
+          </div>
           
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-daara-gold/10">
             <span className="text-xs font-semibold text-daara-gold uppercase tracking-wider">
