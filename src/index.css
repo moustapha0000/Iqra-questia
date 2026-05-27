@@ -78,3 +78,88 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ==========================================
+   Dark Mode Overrides for the Quiz Sub-App
+   ========================================== */
+html:not([data-theme="light"]) .h-screen.w-full .bg-white,
+html:not([data-theme="light"]) .h-screen.w-full .bg-white\/95 {
+  background-color: var(--color-daara-surface) !important;
+  color: var(--color-daara-text) !important;
+  border-color: rgba(229, 184, 92, 0.15) !important;
+}
+
+html:not([data-theme="light"]) .h-screen.w-full .bg-gray-50,
+html:not([data-theme="light"]) .h-screen.w-full .bg-gray-100 {
+  background-color: var(--color-daara-bg) !important;
+  color: var(--color-daara-text) !important;
+}
+
+html:not([data-theme="light"]) .h-screen.w-full .text-gray-800,
+html:not([data-theme="light"]) .h-screen.w-full .text-gray-700,
+html:not([data-theme="light"]) .h-screen.w-full .text-gray-600,
+html:not([data-theme="light"]) .h-screen.w-full .text-gray-500,
+html:not([data-theme="light"]) .h-screen.w-full .text-gray-900 {
+  color: var(--color-daara-text) !important;
+}
+
+html:not([data-theme="light"]) .h-screen.w-full .text-gray-400 {
+  color: var(--color-daara-text-muted) !important;
+}
+
+html:not([data-theme="light"]) .h-screen.w-full .border-gray-100,
+html:not([data-theme="light"]) .h-screen.w-full .border-gray-200 {
+  border-color: rgba(229, 184, 92, 0.15) !important;
+}
+
+html:not([data-theme="light"]) .h-screen.w-full .hover\:bg-gray-50:hover,
+html:not([data-theme="light"]) .h-screen.w-full .hover\:bg-gray-100:hover {
+  background-color: var(--color-daara-surface-hover) !important;
+}
+
+/* Match options active/selected styles in dark mode */
+html:not([data-theme="light"]) .h-screen.w-full .bg-blue-100 {
+  background-color: rgba(229, 184, 92, 0.15) !important;
+  border-color: var(--color-daara-gold) !important;
+  color: var(--color-daara-gold-light) !important;
+}
+
+/* Confetti and quiz path SVG line */
+html:not([data-theme="light"]) .h-screen.w-full svg path[stroke="#e5e5e5"] {
+  stroke: rgba(229, 184, 92, 0.15) !important;
+}
+html:not([data-theme="light"]) .h-screen.w-full svg path[stroke="#cecece"] {
+  stroke: var(--color-daara-gold) !important;
+  opacity: 0.3;
+}
+
+/* Duolingo style button overrides */
+html:not([data-theme="light"]) .h-screen.w-full .bg-white.border-gray-200 {
+  background-color: var(--color-daara-surface) !important;
+  border-color: rgba(229, 184, 92, 0.2) !important;
+}
+html:not([data-theme="light"]) .h-screen.w-full .bg-white.border-gray-200:hover {
+  background-color: var(--color-daara-surface-hover) !important;
+}
+
+/* Knowledge cards and modals inside Quiz */
+html:not([data-theme="light"]) .h-screen.w-full .bg-\[\#d7ffb8\] {
+  background-color: #062f18 !important;
+  border-color: #105a2c !important;
+}
+html:not([data-theme="light"]) .h-screen.w-full .bg-\[\#ffdfe0\] {
+  background-color: #420f12 !important;
+  border-color: #6a1a1f !important;
+}
+html:not([data-theme="light"]) .h-screen.w-full .text-green-700,
+html:not([data-theme="light"]) .h-screen.w-full .text-green-800 {
+  color: #4ade80 !important;
+}
+html:not([data-theme="light"]) .h-screen.w-full .text-red-700,
+html:not([data-theme="light"]) .h-screen.w-full .text-red-600 {
+  color: #f87171 !important;
+}
+html:not([data-theme="light"]) .h-screen.w-full .bg-red-50 {
+  background-color: #1a080a !important;
+  border-color: #420f12 !important;
+}

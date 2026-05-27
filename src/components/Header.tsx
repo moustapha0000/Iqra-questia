@@ -197,9 +197,7 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                   Installer
                 </button>
               )}
-              <div className="ml-2">
-                <SearchBar setPage={setPage} />
-              </div>
+
               <button
                 onClick={toggleTheme}
                 className="theme-toggle-btn ml-2 p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface-hover rounded-full transition-colors"
@@ -374,7 +372,7 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                   {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
                 </button>
               )}
-              <SearchBar setPage={setPage} />
+
               {startTutorial && (
                 <button
                   onClick={startTutorial}

@@ -26,7 +26,7 @@ const OFFERS_LIST = [
   {
     id: 'free',
     name: 'Apprenant',
-    price: '0 €',
+    price: '0 FCFA',
     period: '/ mois',
     desc: 'Accès complet aux modules de base pour débuter sereinement.',
     features: [
@@ -42,7 +42,7 @@ const OFFERS_LIST = [
   {
     id: 'etudiant',
     name: 'Étudiant du Savoir',
-    price: '4,99 €',
+    price: '1 000 FCFA',
     period: '/ mois',
     desc: 'Renforcez votre apprentissage avec des fonctionnalités d\'IA avancées.',
     features: [
@@ -59,7 +59,7 @@ const OFFERS_LIST = [
   {
     id: 'protecteur',
     name: 'Protecteur de la Daara',
-    price: '14,99 €',
+    price: '3 000 FCFA',
     period: '/ mois',
     desc: 'Devenez un pilier actif de notre mission de transmission du savoir.',
     features: [
@@ -103,6 +103,7 @@ export function Dashboard() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editDisplayName, setEditDisplayName] = useState('');
   const [editPhotoURL, setEditPhotoURL] = useState('');
+  const [editPhoneNumber, setEditPhoneNumber] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // Monitor real-time XP gains today
@@ -147,6 +148,7 @@ export function Dashboard() {
     if (profile) {
       setEditDisplayName(profile.displayName || '');
       setEditPhotoURL(profile.photoURL || '');
+      setEditPhoneNumber(profile.phoneNumber || '');
       setShowEditProfile(true);
     }
   };
@@ -156,7 +158,7 @@ export function Dashboard() {
     if (!editDisplayName.trim()) return;
     setIsSavingProfile(true);
     try {
-      await updateUserProfile(editDisplayName.trim(), editPhotoURL.trim());
+      await updateUserProfile(editDisplayName.trim(), editPhotoURL.trim(), editPhoneNumber.trim());
       setShowEditProfile(false);
     } catch (error) {
       console.error("Failed to update profile", error);
@@ -792,7 +794,18 @@ export function Dashboard() {
                   />
                   <p className="text-xs text-daara-text-muted mt-1">Laissez vide ou modifiez le lien pour utiliser un avatar personnalisé.</p>
                 </div>
-                
+                <div>
+                  <label className="block text-sm font-bold text-daara-text-muted mb-1">Numéro de téléphone</label>
+                  <input
+                    type="tel"
+                    value={editPhoneNumber}
+                    onChange={e => setEditPhoneNumber(e.target.value)}
+                    placeholder="ex: +221 77 123 45 67"
+                    className="w-full px-4 py-3 bg-daara-bg border border-daara-gold/20 rounded-xl text-daara-text focus:outline-none focus:border-daara-gold transition-colors font-bold"
+                  />
+                  <p className="text-xs text-daara-text-muted mt-1">Sert au suivi de vos cours et de vos quiz.</p>
+                </div>
+
                 {editPhotoURL && (
                   <div className="flex justify-center my-4">
                     <img src={editPhotoURL} alt="Aperçu" className="w-20 h-20 rounded-full border-2 border-daara-gold/50 object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />

@@ -407,6 +407,16 @@ export function Admin() {
                   </button>
                 );
               })}
+
+              <div className="pt-4 mt-4 border-t border-daara-gold/10">
+                <a
+                  href="#home"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-daara-gold hover:bg-daara-gold/10 transition-all group"
+                >
+                  <ArrowUpRight className="w-4 h-4 shrink-0" />
+                  Retour au site
+                </a>
+              </div>
             </nav>
 
             {/* Admin user */}
@@ -454,6 +464,14 @@ export function Admin() {
             >
               <RefreshCw className="w-4 h-4" />
             </button>
+            <a
+              href="#home"
+              className="px-3 py-1.5 bg-daara-gold/10 text-daara-gold hover:bg-daara-gold/20 rounded-xl text-xs font-bold border border-daara-gold/20 flex items-center gap-1.5 transition-colors"
+              title="Retourner à l'accueil"
+            >
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>Voir le site</span>
+            </a>
           </div>
         </header>
 

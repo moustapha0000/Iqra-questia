@@ -16,6 +16,7 @@ export interface UserProfile {
   streak: number;
   lastActiveDate?: string;
   badges: string[];
+  phoneNumber?: string; // New field for user registration phone number
   createdAt: any;
 }
 
@@ -30,7 +31,7 @@ interface AuthContextType {
   earnXP: (amount: number) => Promise<void>;
   unlockBadge: (badgeId: string) => Promise<void>;
   updateStreak: () => Promise<void>;
-  updateUserProfile: (displayName: string, photoURL: string) => Promise<void>;
+  updateUserProfile: (displayName: string, photoURL: string, phoneNumber?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -306,11 +307,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUserProfile = async (displayName: string, photoURL: string) => {
+  const updateUserProfile = async (displayName: string, photoURL: string, phoneNumber?: string) => {
     if (!user || !profile) return;
     const userRef = doc(db, 'users', user.uid);
     try {
-      await updateDoc(userRef, { displayName, photoURL });
+      const updateData: any = { displayName, photoURL };
+      if (phoneNumber !== undefined) {
+        updateData.phoneNumber = phoneNumber;
+      }
+      await updateDoc(userRef, updateData);
       // The onSnapshot listener will automatically update the local profile state
     } catch (error) {
       console.error("Error updating user profile:", error);

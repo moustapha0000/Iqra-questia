@@ -11,10 +11,11 @@ import { Dashboard } from './pages/Dashboard';
 import { Admin } from './pages/Admin';
 import { Chatbot } from './components/Chatbot';
 import { OnboardingModal } from './components/OnboardingModal';
+import { useAuth } from './contexts/AuthContext';
 
 import { playlists } from './data';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, Loader2 } from 'lucide-react';
+import { MessageCircle, Loader2, X, Check } from 'lucide-react';
 import { seedPlaylistsIfEmpty, onPlaylistsChanged, playlistsToMap } from './utils/playlistService';
 
 const IqraQuiz = React.lazy(() => import('./iqra-quiz/App'));
@@ -22,6 +23,27 @@ const IqraQuiz = React.lazy(() => import('./iqra-quiz/App'));
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
   const [dynamicPlaylists, setDynamicPlaylists] = useState<Record<string, PlaylistInfo>>(playlists);
+
+  const { user, profile, updateUserProfile } = useAuth();
+  const [showPhonePrompt, setShowPhonePrompt] = useState(false);
+  const [phoneNumberInput, setPhoneNumberInput] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
+
+  // Monitor if user needs to register their phone number (e.g. upon signup/registration)
+  useEffect(() => {
+    if (user && profile && !profile.phoneNumber) {
+      const skipped = sessionStorage.getItem('iq_phone_prompt_skipped');
+      if (!skipped) {
+        // Delay popup slightly to not clash with onboarding tour
+        const timer = setTimeout(() => {
+          setShowPhonePrompt(true);
+        }, 3500);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      setShowPhonePrompt(false);
+    }
+  }, [user, profile]);
 
   // Fetch dynamic playlists from Firestore on mount
   useEffect(() => {
@@ -118,7 +140,7 @@ export default function App() {
 
   if (currentPage === 'quiz') {
     return (
-      <div className="h-screen w-full overflow-hidden font-sans selection:bg-daara-gold/30 selection:text-daara-bg relative bg-white sm:bg-gray-100">
+      <div className="h-screen w-full overflow-hidden font-sans selection:bg-daara-gold/30 selection:text-daara-bg relative bg-daara-bg text-daara-text transition-colors duration-300">
         <Suspense fallback={<div className="flex items-center justify-center h-full w-full"><Loader2 className="w-10 h-10 animate-spin text-daara-gold" /></div>}>
           <IqraQuiz onBack={() => setPage('home')} />
         </Suspense>
@@ -164,6 +186,79 @@ export default function App() {
       
       {/* Onboarding Modal */}
       <OnboardingModal />
+
+      {/* Phone Number Registration Modal */}
+      <AnimatePresence>
+        {showPhonePrompt && (
+          <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 20, opacity: 0 }}
+              className="bg-daara-surface border border-daara-gold/20 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-6"
+            >
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-daara-gold/10 border border-daara-gold/30 rounded-full flex items-center justify-center text-daara-gold mx-auto">
+                  <span className="text-2xl">📱</span>
+                </div>
+                <h3 className="text-2xl font-serif font-bold text-daara-text">Finalisez votre inscription</h3>
+                <p className="text-xs text-daara-text-muted">
+                  Veuillez renseigner votre numéro de téléphone pour compléter la création de votre compte sur Iqra Quest.
+                </p>
+              </div>
+
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!phoneNumberInput.trim()) return;
+                  setSavingPhone(true);
+                  try {
+                    await updateUserProfile(profile?.displayName || user?.displayName || 'Anonyme', profile?.photoURL || user?.photoURL || '', phoneNumberInput.trim());
+                    setShowPhonePrompt(false);
+                  } catch (err) {
+                    console.error("Failed to save phone number:", err);
+                  } finally {
+                    setSavingPhone(false);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-daara-text-muted mb-1.5 font-bold">Numéro de téléphone</label>
+                  <input
+                    type="tel"
+                    value={phoneNumberInput}
+                    onChange={e => setPhoneNumberInput(e.target.value)}
+                    placeholder="ex: +221 77 123 45 67"
+                    className="w-full px-4 py-3 bg-daara-bg border border-daara-gold/20 rounded-xl text-daara-text focus:outline-none focus:border-daara-gold transition-colors text-center font-bold tracking-wide"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sessionStorage.setItem('iq_phone_prompt_skipped', 'true');
+                      setShowPhonePrompt(false);
+                    }}
+                    className="flex-1 py-3 bg-daara-bg border border-daara-gold/20 text-daara-text-muted rounded-xl text-xs font-bold hover:text-daara-text transition-colors"
+                  >
+                    Plus tard
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingPhone}
+                    className="flex-1 py-3 bg-daara-gold text-daara-bg rounded-xl text-xs font-bold hover:bg-yellow-500 transition-colors shadow-md disabled:opacity-50"
+                  >
+                    {savingPhone ? 'Enregistrement...' : 'Valider'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
