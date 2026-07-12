@@ -1,4 +1,4 @@
-export type PageType = string;
+export type PageType = 'home' | 'fondements' | 'piliers' | 'fiqh' | 'hadiths' | 'burdah' | 'prophetes' | 'apropos' | 'quiz';
 
 export interface PlaylistInfo {
   id: string;

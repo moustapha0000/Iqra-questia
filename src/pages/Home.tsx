@@ -1,225 +1,55 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { PageType, PlaylistInfo } from '../types';
-import { 
-  BookOpen, PlayCircle, BookText, Heart, Star, 
-  HelpCircle, Info, MessageSquare, Users, CheckCircle, 
-  Trophy, BookOpenCheck, ArrowRight, Activity, Clock,
-  Play, Pause, Sparkles, RefreshCw
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useAudio } from '../contexts/AudioContext';
-import { getUserProgress, UserProgressMap } from '../utils/progressService';
-
-interface AyahSegment {
-  arabic: string;
-  transliteration: string;
-  translation: string;
-  start: number;
-  end: number;
-}
-
-interface QuranAyah {
-  text: string;
-  translation: string;
-  transliteration: string;
-  surah: string;
-  number: string;
-  audioUrl: string;
-  segments: AyahSegment[];
-}
-
-const CURATED_AYAHs: QuranAyah[] = [
-  {
-    text: "وَقُل رَّبِّ زِدْنِي عِلْمًا",
-    translation: "Et dis : « Ô mon Seigneur, accroît mes connaissances ! »",
-    transliteration: "Wa qul rabbi zidnī 'ilmā",
-    surah: "Sourate Taha",
-    number: "20:114",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2481.mp3",
-    segments: [
-      { arabic: "وَقُل", transliteration: "Wa qul", translation: "Et dis", start: 0.8, end: 1.8 },
-      { arabic: "رَّبِّ", transliteration: "rabbi", translation: "Ô mon Seigneur", start: 1.8, end: 2.8 },
-      { arabic: "زِدْنِي", transliteration: "zidnī", translation: "accroît mes", start: 2.8, end: 4.2 },
-      { arabic: "عِلْمًا", transliteration: "'ilmā", translation: "connaissances", start: 4.2, end: 6.2 }
-    ]
-  },
-  {
-    text: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-    translation: "À côté de la difficulté est certes la facilité.",
-    transliteration: "Inna ma'al 'usri yusrā",
-    surah: "Sourate Ash-Sharh",
-    number: "94:6",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6102.mp3",
-    segments: [
-      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.6, end: 1.5 },
-      { arabic: "مَعَ", transliteration: "ma'a", translation: "avec", start: 1.5, end: 2.0 },
-      { arabic: "الْعُسْرِ", transliteration: "al-'usri", translation: "la difficulté", start: 2.0, end: 3.0 },
-      { arabic: "يُسْرًا", transliteration: "yusrā", translation: "une facilité", start: 3.0, end: 5.0 }
-    ]
-  },
-  {
-    text: "فَاذْكُرُونِي أَذْكُرْكُمْ",
-    translation: "Souvenez-vous de Moi, Je me souviendrai de vous.",
-    transliteration: "Fadhkurūnī adhkurkum",
-    surah: "Sourate Al-Baqara",
-    number: "2:152",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/159.mp3",
-    segments: [
-      { arabic: "فَاذْكُرُونِي", transliteration: "Fadhkurūnī", translation: "Souvenez-vous de Moi", start: 0.8, end: 3.2 },
-      { arabic: "أَذْكُرْكُمْ", transliteration: "adhkurkum", translation: "Je me souviendrai de vous", start: 3.2, end: 6.0 }
-    ]
-  },
-  {
-    text: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
-    translation: "Certes, Allah est avec ceux qui sont patients.",
-    transliteration: "Inna Allāha ma'as-sābirīn",
-    surah: "Sourate Al-Baqara",
-    number: "2:153",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/160.mp3",
-    segments: [
-      { arabic: "إِنَّ", transliteration: "Inna", translation: "Certes", start: 0.7, end: 1.7 },
-      { arabic: "اللَّهَ", transliteration: "Allāha", translation: "Allah", start: 1.7, end: 2.7 },
-      { arabic: "مَعَ", transliteration: "ma'a", translation: "est avec", start: 2.7, end: 3.2 },
-      { arabic: "الصَّابِرِينَ", transliteration: "as-sābirīn", translation: "les patients", start: 3.2, end: 5.5 }
-    ]
-  },
-  {
-    text: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
-    translation: "Guide-nous dans le droit chemin.",
-    transliteration: "Ihdinā as-sirāta al-mustaqīm",
-    surah: "Sourate Al-Fatiha",
-    number: "1:6",
-    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6.mp3",
-    segments: [
-      { arabic: "اهْدِنَا", transliteration: "Ihdinā", translation: "Guide-nous", start: 0.6, end: 2.0 },
-      { arabic: "الصِّرَاطَ", transliteration: "as-sirāta", translation: "dans le chemin", start: 2.0, end: 3.2 },
-      { arabic: "الْمُسْتَقِيمَ", transliteration: "al-mustaqīm", translation: "droit", start: 3.2, end: 5.5 }
-    ]
-  }
-];
+import React, { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
+import { PageType } from '../types';
+import { BookOpen, PlayCircle, BookText, Heart, Star, HelpCircle, Info, MessageCircle, Users, Server, Database, Shield, Lock, FileText } from 'lucide-react';
+import { Logo } from '../components/Logo';
 
 interface HomeProps {
   setPage: (page: PageType) => void;
-  playlists: Record<string, PlaylistInfo>;
 }
 
-const ICON_MAP: Record<string, React.ElementType> = {
-  fondements: BookOpen,
-  piliers: Star,
-  fiqh: BookText,
-  hadiths: MessageSquare,
-  prophetes: Users,
-  burdah: Heart,
-  apropos: Info,
-};
+interface Recommendation {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+}
 
-const COLOR_MAP: Record<string, string> = {
-  fondements: 'from-blue-500/20 to-indigo-500/20 text-blue-400 border-blue-500/30',
-  piliers: 'from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30',
-  fiqh: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30',
-  hadiths: 'from-purple-500/20 to-pink-500/20 text-purple-400 border-purple-500/30',
-  prophetes: 'from-sky-500/20 to-blue-500/20 text-sky-400 border-sky-500/30',
-  burdah: 'from-rose-500/20 to-red-500/20 text-rose-400 border-rose-500/30',
-};
-
-export function Home({ setPage, playlists }: HomeProps) {
-  const { user } = useAuth();
-  const [userProgress, setUserProgress] = useState<UserProgressMap>({});
-  const [learnerCount, setLearnerCount] = useState(1482);
-  
-  // Verset du Jour State
-  const [currentAyah, setCurrentAyah] = useState<QuranAyah>(() => {
-    const day = new Date().getDate();
-    return CURATED_AYAHs[day % CURATED_AYAHs.length];
-  });
-  
-  const { isPlaying, currentTime, togglePlay, setAudioSource, audioSrc, seek } = useAudio();
-  
-  const handleWordClick = (start: number) => {
-    if (audioSrc !== currentAyah.audioUrl) {
-      setAudioSource(currentAyah.audioUrl);
-      setTimeout(() => {
-        seek(start);
-        if (!isPlaying) togglePlay();
-      }, 150);
-    } else {
-      seek(start);
-      if (!isPlaying) togglePlay();
-    }
-  };
-
-  const isThisAyahPlaying = isPlaying && audioSrc === currentAyah.audioUrl;
-  const audioLoading = false; // Simplified for global context
+export function Home({ setPage }: HomeProps) {
+  const [backendStatus, setBackendStatus] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   useEffect(() => {
-    // Initialize global audio source if it's empty
-    if (!audioSrc) {
-      setAudioSource(currentAyah.audioUrl);
-    }
-  }, [currentAyah.audioUrl, audioSrc, setAudioSource]);
+    fetch('/api/health')
+      .then((res) => res.json())
+      .then((data) => setBackendStatus(data.message))
+      .catch((err) => console.error('Backend not reachable:', err));
 
-  const handlePlayPause = () => {
-    if (audioSrc !== currentAyah.audioUrl) {
-      setAudioSource(currentAyah.audioUrl);
-      if (!isPlaying) togglePlay();
-    } else {
-      togglePlay();
-    }
-  };
-
-  const handleNextAyah = () => {
-    if (isPlaying) togglePlay();
-    
-    let nextIndex;
-    do {
-      nextIndex = Math.floor(Math.random() * CURATED_AYAHs.length);
-    } while (CURATED_AYAHs[nextIndex].number === currentAyah.number);
-    
-    const nextAyah = CURATED_AYAHs[nextIndex];
-    setCurrentAyah(nextAyah);
-    setAudioSource(nextAyah.audioUrl);
-  };
-
-  // Animate learner count slightly to simulate active users
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLearnerCount(prev => prev + Math.floor(Math.random() * 2));
-    }, 12000);
-    return () => clearInterval(interval);
+    fetch('/api/recommendations')
+      .then((res) => res.json())
+      .then((data) => setRecommendations(data))
+      .catch((err) => console.error('Recommendations not reachable:', err));
   }, []);
 
-  // Fetch progress if user logged in
-  useEffect(() => {
-    if (user) {
-      getUserProgress(user.uid).then(progress => {
-        setUserProgress(progress);
-      });
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Database': return Database;
+      case 'Shield': return Shield;
+      case 'Lock': return Lock;
+      case 'FileText': return FileText;
+      default: return Info;
     }
-  }, [user]);
+  };
 
-  const getCardIcon = (key: string) => ICON_MAP[key] || PlayCircle;
-  const getCardColor = (key: string) => COLOR_MAP[key] || 'from-daara-gold/15 to-amber-500/15 text-daara-gold border-daara-gold/20';
-
-  // Build dynamic cards list
-  const dynamicCards = Object.entries(playlists).map(([key, info]) => ({
-    id: key,
-    title: info.title,
-    desc: info.desc,
-    icon: getCardIcon(key),
-    color: getCardColor(key),
-    isStatic: false
-  }));
-
-  // Append static About page
-  dynamicCards.push({
-    id: 'apropos',
-    title: 'À propos',
-    desc: 'Notre mission et notre vision pour la transmission du savoir.',
-    icon: Info,
-    color: 'from-neutral-500/20 to-neutral-600/20 text-neutral-400 border-neutral-500/20',
-    isStatic: true
-  });
+  const cards = [
+    { id: 'fondements', title: 'Fondements', icon: BookOpen, desc: 'La croyance (\'Aqida)' },
+    { id: 'piliers', title: 'Piliers', icon: Star, desc: 'La pratique (Al-Ibadat)' },
+    { id: 'fiqh', title: 'Fiqh', icon: BookText, desc: 'Les règles du quotidien' },
+    { id: 'hadiths', title: 'Hadiths', icon: MessageCircle, desc: 'Paroles du Prophète ﷺ' },
+    { id: 'prophetes', title: 'Prophètes', icon: Users, desc: 'Histoires et leçons de vie' },
+    { id: 'burdah', title: 'Spiritualité', icon: Heart, desc: 'Amour du Prophète ﷺ' },
+    { id: 'apropos', title: 'À propos', icon: Info, desc: 'Notre mission' },
+  ];
 
   return (
     <motion.div
@@ -228,18 +58,29 @@ export function Home({ setPage, playlists }: HomeProps) {
       exit={{ opacity: 0, y: -20 }}
       className="max-w-5xl mx-auto"
     >
-      {/* Hero section */}
       <div className="text-center mb-16 pt-12 relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] aspect-square bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none" />
 
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="inline-block mb-6 px-6 py-2 rounded-full border border-daara-gold/30 bg-daara-surface/50 text-daara-gold font-medium text-sm tracking-widest uppercase relative z-10"
         >
           Bienvenue sur Iqra Quest
         </motion.div>
+
+        {backendStatus && (
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-center justify-center gap-2 mb-6 px-4 py-2 rounded-full border border-green-500/30 bg-green-500/10 text-green-600 font-medium text-xs tracking-widest uppercase relative z-10 mx-auto w-fit"
+          >
+            <Server className="w-4 h-4" />
+            {backendStatus}
+          </motion.div>
+        )}
         
         <h1 className="text-5xl md:text-7xl font-serif font-bold text-daara-text mb-6 leading-tight relative z-10">
           La plateforme islamique <br className="hidden md:block" />
@@ -248,25 +89,11 @@ export function Home({ setPage, playlists }: HomeProps) {
           </span>
         </h1>
         
-        <p className="text-3xl md:text-4xl font-serif text-daara-gold-light mb-8 opacity-90" dir="rtl">
+        <p className="text-3xl md:text-4xl font-serif text-daara-gold-light mb-10 opacity-90" dir="rtl">
           بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
         </p>
 
-        {/* Learner Counter Widget */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex items-center justify-center gap-2 text-daara-text-muted text-xs font-semibold uppercase tracking-wider mb-8 bg-daara-surface/40 border border-daara-gold/10 px-4 py-2 rounded-full w-fit mx-auto backdrop-blur-sm relative z-10"
-        >
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <span>{learnerCount} étudiants en ligne aujourd'hui</span>
-        </motion.div>
-
-        <div className="relative max-w-2xl mx-auto p-8 rounded-3xl bg-daara-surface/80 backdrop-blur-sm shadow-2xl border border-daara-gold/20 mb-12">
+        <div className="relative max-w-2xl mx-auto p-8 rounded-2xl bg-daara-surface/80 backdrop-blur-sm shadow-2xl border border-daara-gold/20 mb-12">
           <div className="absolute -top-6 -left-2 text-7xl text-daara-gold/10 font-serif">"</div>
           <p className="text-xl md:text-2xl font-serif italic text-daara-text mb-6 relative z-10 leading-relaxed">
             La recherche du savoir est une obligation pour chaque musulman.
@@ -285,226 +112,28 @@ export function Home({ setPage, playlists }: HomeProps) {
         </button>
       </div>
 
-      {/* Quiz du Jour Widget */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        onClick={() => setPage('quiz')}
-        className="cursor-pointer bg-gradient-to-r from-daara-surface to-[#0e2718] border border-daara-gold/30 rounded-3xl p-6 mb-12 shadow-xl hover:border-daara-gold transition-all duration-300 group relative overflow-hidden"
-      >
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-daara-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-daara-gold/10 border border-daara-gold/20 flex items-center justify-center text-daara-gold shrink-0">
-              <Trophy className="w-6 h-6 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-serif font-bold text-lg text-daara-text">Le Quiz du Jour</h3>
-                <span className="text-[10px] bg-daara-gold/20 text-daara-gold font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  +15 XP
-                </span>
-              </div>
-              <p className="text-xs text-daara-text-muted mt-0.5">
-                Renforcez votre foi aujourd'hui avec 3 questions rapides sur la croyance et la pratique.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-daara-gold font-bold group-hover:translate-x-1 transition-transform shrink-0">
-            <span>Relever le défi</span>
-            <ArrowRight className="w-4 h-4" />
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Verset du Jour Widget */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="bg-daara-surface border border-daara-gold/20 rounded-3xl p-6 sm:p-8 mb-12 shadow-xl relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 w-48 h-48 bg-daara-gold/5 rounded-full blur-2xl pointer-events-none" />
-        
-        <div className="flex items-center justify-between mb-4 border-b border-daara-gold/10 pb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-daara-gold shrink-0" />
-            <h3 className="font-serif font-bold text-lg text-daara-text">Récitation Synchronisée</h3>
-          </div>
-          
-          <button 
-            onClick={handleNextAyah}
-            className="p-2 hover:bg-daara-gold/10 text-daara-text-muted hover:text-daara-gold rounded-full transition-colors flex items-center gap-1 text-xs font-semibold"
-            title="Autre verset"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Autre verset</span>
-          </button>
-        </div>
-        
-        <div className="space-y-6 text-center py-2">
-          {/* Synchronized Word Segments Grid */}
-          <div className="flex flex-row-reverse justify-center flex-wrap gap-3 sm:gap-4 py-4">
-            {currentAyah.segments.map((seg, idx) => {
-              const isActive = isThisAyahPlaying && currentTime >= seg.start && currentTime <= seg.end;
-              return (
-                <motion.button
-                  key={idx}
-                  onClick={() => handleWordClick(seg.start)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  animate={{
-                    scale: isActive ? 1.12 : 1.0,
-                    y: isActive ? -4 : 0
-                  }}
-                  className={`px-4 py-3 rounded-2xl border transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-daara-gold/40 select-none ${
-                    isActive
-                      ? 'bg-daara-gold/20 border-daara-gold shadow-lg shadow-daara-gold/15 text-daara-gold-light'
-                      : 'bg-daara-bg/50 border-daara-gold/10 text-daara-text hover:border-daara-gold/45 hover:bg-daara-surface/40'
-                  }`}
-                  title="Cliquer pour écouter ce mot"
-                >
-                  <p className="text-2xl sm:text-3xl font-serif font-bold text-center leading-loose">{seg.arabic}</p>
-                  <p className="text-[10px] text-center text-daara-text-muted mt-1 font-mono uppercase tracking-wider">{seg.transliteration}</p>
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Active Word Translation & Main Translation Display */}
-          <div className="bg-daara-bg/30 rounded-2xl p-4 border border-daara-gold/10 max-w-xl mx-auto space-y-3 min-h-[90px] flex flex-col justify-center">
-            <AnimatePresence mode="wait">
-              {(() => {
-                const activeSeg = currentAyah.segments.find(s => isThisAyahPlaying && currentTime >= s.start && currentTime <= s.end);
-                if (activeSeg) {
-                  return (
-                    <motion.div
-                      key={activeSeg.arabic}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="text-center space-y-1"
-                    >
-                      <p className="text-[10px] text-daara-gold font-bold uppercase tracking-widest">Mot Récité en Direct :</p>
-                      <p className="text-sm font-semibold text-daara-text">
-                        <span className="text-daara-gold-light font-bold text-base">{activeSeg.arabic}</span>
-                        <span className="text-daara-text-muted font-normal"> ({activeSeg.transliteration}) </span>
-                        = <span className="underline decoration-daara-gold/40 decoration-2">{activeSeg.translation}</span>
-                      </p>
-                    </motion.div>
-                  );
-                }
-                return (
-                  <motion.div
-                    key="default"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center space-y-1.5"
-                  >
-                    <p className="text-xs text-daara-text-muted leading-relaxed font-medium italic">
-                      « {currentAyah.translation} »
-                    </p>
-                    <p className="text-[10px] text-daara-text-muted/60">
-                      ({currentAyah.transliteration})
-                    </p>
-                  </motion.div>
-                );
-              })()}
-            </AnimatePresence>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-daara-gold/10">
-            <span className="text-xs font-semibold text-daara-gold uppercase tracking-wider">
-              {currentAyah.surah} • Verset {currentAyah.number}
-            </span>
-            
-            <button
-              onClick={handlePlayPause}
-              disabled={audioLoading}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-bold text-xs transition-all ${
-                isThisAyahPlaying 
-                  ? 'bg-daara-gold/20 text-daara-gold border border-daara-gold' 
-                  : 'bg-daara-gold text-daara-bg hover:bg-yellow-500'
-              } cursor-pointer`}
-            >
-              {audioLoading ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Chargement...</span>
-                </>
-              ) : isThisAyahPlaying ? (
-                <>
-                  <Pause className="w-3.5 h-3.5 fill-current" />
-                  <span>Pause la récitation</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Écouter la récitation</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Learning Modules / Playlists */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-serif font-bold text-daara-text mb-6 flex items-center gap-2">
-          <BookOpenCheck className="w-5 h-5 text-daara-gold" />
-          Modules d'Apprentissage
-        </h2>
-      </div>
-
       <div id="learning-categories" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-        {dynamicCards.map((card, idx) => {
+        {cards.map((card, idx) => {
           const Icon = card.icon;
-          const isCompleted = !card.isStatic && !!userProgress[card.id]?.completed;
-          
           return (
             <motion.div
               key={card.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 * idx }}
+              transition={{ delay: 0.1 * idx }}
               onClick={() => setPage(card.id as PageType)}
-              className="group cursor-pointer bg-daara-surface p-8 rounded-3xl shadow-lg border border-daara-gold/10 hover:border-daara-gold/40 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden"
+              className="group cursor-pointer bg-daara-surface p-8 rounded-2xl shadow-lg border border-daara-gold/10 hover:border-daara-gold/40 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden"
             >
-              {/* Highlight background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-daara-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-              
-              {/* Completed checkmark badge */}
-              {isCompleted && (
-                <div className="absolute top-4 right-4 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 p-1.5 rounded-full" title="Module complété">
-                  <CheckCircle className="w-4 h-4" />
-                </div>
-              )}
-
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${card.color} border flex items-center justify-center mb-6 group-hover:brightness-110 transition-all duration-500 relative z-10`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-daara-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="w-14 h-14 rounded-xl bg-daara-bg/50 border border-daara-gold/20 flex items-center justify-center mb-6 group-hover:bg-daara-gold group-hover:border-daara-gold text-daara-gold group-hover:text-daara-bg transition-all duration-500 relative z-10">
                 <Icon className="w-7 h-7" />
               </div>
-              
               <h3 className="text-2xl font-serif font-bold text-daara-text mb-3 group-hover:text-daara-gold-light transition-colors relative z-10">
                 {card.title}
               </h3>
-              
-              <p className="text-daara-text-muted text-sm leading-relaxed relative z-10 mb-4 line-clamp-3">
+              <p className="text-daara-text-muted text-sm leading-relaxed relative z-10">
                 {card.desc}
               </p>
-
-              {/* Progress Bar */}
-              {user && !card.isStatic && (
-                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-daara-bg/50">
-                  <div 
-                    className={`h-full transition-all duration-500 ${isCompleted ? 'bg-emerald-500' : 'bg-transparent'}`}
-                    style={{ width: isCompleted ? '100%' : '0%' }}
-                  />
-                </div>
-              )}
             </motion.div>
           );
         })}
@@ -529,6 +158,39 @@ export function Home({ setPage, playlists }: HomeProps) {
           </button>
         </div>
       </div>
+
+      {recommendations.length > 0 && (
+        <div className="mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-serif font-bold text-daara-text mb-4">Point 4 : Recommandations Full-Stack</h2>
+            <p className="text-daara-text-muted max-w-2xl mx-auto">
+              Ces recommandations sont chargées dynamiquement depuis une base de données SQLite via notre nouvelle API Express.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {recommendations.map((rec, idx) => {
+              const Icon = getIcon(rec.icon);
+              return (
+                <motion.div
+                  key={rec.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * idx }}
+                  className="bg-daara-surface p-6 rounded-2xl shadow-md border border-daara-gold/10 flex gap-4 items-start"
+                >
+                  <div className="w-12 h-12 rounded-full bg-daara-gold/10 flex items-center justify-center shrink-0">
+                    <Icon className="w-6 h-6 text-daara-gold" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-daara-text mb-2">{rec.title}</h3>
+                    <p className="text-daara-text-muted text-sm leading-relaxed">{rec.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

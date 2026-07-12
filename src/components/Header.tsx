@@ -1,41 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User, Bell, Sliders, ClipboardList, Play, Pause } from 'lucide-react';
-import { PageType, PlaylistInfo } from '../types';
+import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User } from 'lucide-react';
+import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
 import { useAuth } from '../contexts/AuthContext';
-import { useAudio } from '../contexts/AudioContext';
-import { SearchBar } from './SearchBar';
-
-const PLAYLIST_ICONS: Record<string, React.ElementType> = {
-  fondements: BookOpen,
-  piliers: Star,
-  fiqh: BookText,
-  hadiths: MessageCircle,
-  burdah: Heart,
-  prophetes: Users,
-};
 
 interface HeaderProps {
   currentPage: PageType;
   setPage: (page: PageType) => void;
   startTutorial?: () => void;
-  playlists?: Record<string, PlaylistInfo>;
 }
 
-export function Header({ currentPage, setPage, startTutorial, playlists = {} }: HeaderProps) {
+export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const { user, profile, authError, isAdmin, signInWithGoogle, logout } = useAuth();
-  const { isPlaying, togglePlay, audioSrc } = useAudio();
+  const { user, signInWithGoogle, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  
-  const [notifications, setNotifications] = useState<any[]>([
-    { id: '1', text: "Bienvenue sur la plateforme Iqra Quest ! Explorez nos modules d'apprentissage.", read: false },
-    { id: '2', text: "Nouveau sujet sur le Forum : 'Les conditions de validité de la prière'.", read: false },
-  ]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,15 +24,13 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
       if (!target.closest('.user-menu-container')) {
         setIsUserMenuOpen(false);
       }
-      if (!target.closest('.notif-container')) {
-        setIsNotifOpen(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
+    // Check local storage or system preference on mount
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light' || savedTheme === 'dark') {
       setTheme(savedTheme);
@@ -78,31 +57,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  useEffect(() => {
-    const handleBadgeNotif = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      const badgeId = customEvent.detail.badgeId;
-      let badgeName = "Nouveau badge";
-      if (badgeId === 'note_master') badgeName = "Scribe de la Daara";
-      else if (badgeId === 'streak_3') badgeName = "Apprenant Fidèle (3 jours)";
-      else if (badgeId === 'streak_7') badgeName = "Pilier de Discipline (7 jours)";
-      else if (badgeId === 'xp_500') badgeName = "Compagnon du Savoir";
-      else if (badgeId === 'xp_1000') badgeName = "Puits de Sagesse";
-      else if (badgeId === 'quiz_perfect') badgeName = "Savant (100% Quiz)";
-
-      const newNotif = {
-        id: Date.now().toString(),
-        text: `Félicitations ! Vous avez débloqué le badge : ${badgeName} ! 🏆`,
-        read: false
-      };
-      setNotifications(prev => [newNotif, ...prev]);
-      setIsNotifOpen(true);
-    };
-
-    window.addEventListener('show-badge-notification', handleBadgeNotif);
-    return () => window.removeEventListener('show-badge-notification', handleBadgeNotif);
-  }, []);
-
   const handleInstall = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
@@ -112,37 +66,21 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
     }
   };
 
-  const navItems: { id: PageType; label: string; icon: React.ElementType }[] = [
+  const navItems: { id: PageType | 'quiz'; label: string; icon: React.ElementType }[] = [
     { id: 'home', label: 'Accueil', icon: Home },
+    { id: 'fondements', label: 'Fondements', icon: BookOpen },
+    { id: 'piliers', label: 'Piliers', icon: Star },
+    { id: 'fiqh', label: 'Fiqh', icon: BookText },
+    { id: 'hadiths', label: 'Hadiths', icon: MessageCircle },
+    { id: 'burdah', label: 'Burdah', icon: Heart },
+    { id: 'prophetes', label: 'Prophètes', icon: Users },
+    { id: 'quiz', label: 'Quiz', icon: HelpCircle },
+    { id: 'apropos', label: 'À propos', icon: Info },
   ];
 
-  Object.entries(playlists).forEach(([key, info]) => {
-    navItems.push({
-      id: key,
-      label: info.title.split(' (')[0],
-      icon: PLAYLIST_ICONS[key] || BookOpen,
-    });
-  });
-
-  navItems.push(
-    { id: 'quiz', label: 'Quiz', icon: HelpCircle },
-    { id: 'forum', label: 'Forum', icon: MessageCircle },
-    { id: 'apropos', label: 'À propos', icon: Info }
-  );
-
-  if (isAdmin) {
-    navItems.push({ id: 'admin', label: 'Admin 👑', icon: Sliders });
-  }
-
-  const handleNav = (id: PageType) => {
-    setPage(id);
+  const handleNav = (id: PageType | 'quiz') => {
+    setPage(id as PageType);
     setIsMobileMenuOpen(false);
-  };
-
-  const unreadNotifsCount = notifications.filter(n => !n.read).length;
-
-  const markAllNotifsAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   return (
@@ -160,12 +98,13 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
               </span>
             </div>
 
-            <nav className="hidden xl:flex items-center gap-1.5">
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-2">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleNav(item.id)}
-                  className={`px-3 py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     currentPage === item.id
                       ? 'bg-daara-gold text-daara-bg shadow-lg shadow-daara-gold/20'
                       : 'text-daara-text-muted hover:bg-daara-surface-hover hover:text-daara-gold-light'
@@ -174,30 +113,16 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                   {item.label}
                 </button>
               ))}
-              {audioSrc && (
-                <button
-                  onClick={togglePlay}
-                  className={`ml-2 p-2 rounded-full border transition-all ${
-                    isPlaying 
-                      ? 'bg-daara-gold/10 border-daara-gold text-daara-gold' 
-                      : 'bg-daara-surface border-daara-gold/30 text-daara-text-muted hover:text-daara-gold'
-                  }`}
-                  title={isPlaying ? "Mettre en pause" : "Reprendre la lecture"}
-                >
-                  {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
-                </button>
-              )}
               {deferredPrompt && (
                 <button
                   onClick={handleInstall}
-                  className="ml-2 flex items-center gap-2 bg-gradient-to-r from-daara-gold to-daara-gold-light text-daara-bg px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105 shadow-md shadow-daara-gold/20"
+                  className="ml-2 flex items-center gap-2 bg-gradient-to-r from-daara-gold to-daara-gold-light text-daara-bg px-4 py-2 rounded-full text-sm font-bold transition-all hover:scale-105 shadow-md shadow-daara-gold/20"
                   title="Installer l'application"
                 >
                   <Download className="w-4 h-4" />
                   Installer
                 </button>
               )}
-
               <button
                 onClick={toggleTheme}
                 className="theme-toggle-btn ml-2 p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface-hover rounded-full transition-colors"
@@ -214,51 +139,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                   <HelpCircle className="w-5 h-5" />
                 </button>
               )}
-
-              {user && (
-                <div className="relative ml-2 notif-container">
-                  <button
-                    onClick={() => {
-                      setIsNotifOpen(!isNotifOpen);
-                      if (!isNotifOpen) markAllNotifsAsRead();
-                    }}
-                    className="p-2 text-daara-text-muted hover:text-daara-gold hover:bg-daara-surface-hover rounded-full transition-colors relative"
-                    title="Centre de notifications"
-                  >
-                    <Bell className="w-5 h-5" />
-                    {unreadNotifsCount > 0 && (
-                      <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-orange-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center border border-daara-bg">
-                        {unreadNotifsCount}
-                      </span>
-                    )}
-                  </button>
-
-                  <AnimatePresence>
-                    {isNotifOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-3 w-80 bg-daara-surface border border-daara-gold/20 rounded-2xl shadow-xl overflow-hidden z-50 p-4"
-                      >
-                        <h4 className="font-serif font-bold text-daara-text border-b border-daara-gold/10 pb-2 mb-3">Notifications</h4>
-                        <div className="space-y-3 max-h-64 overflow-y-auto no-scrollbar">
-                          {notifications.map(n => (
-                            <div key={n.id} className={`p-3 rounded-xl text-xs leading-relaxed border ${n.read ? 'bg-daara-bg/25 border-transparent text-daara-text-muted' : 'bg-daara-gold/5 border-daara-gold/20 text-daara-text font-medium'}`}>
-                              {n.text}
-                            </div>
-                          ))}
-                          {notifications.length === 0 && (
-                            <p className="text-center text-daara-text-muted py-4">Aucune notification.</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
-
               {user ? (
                 <div className="relative ml-4 pl-4 border-l border-daara-gold/20 user-menu-container">
                   <button 
@@ -288,17 +168,7 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                           <p className="text-sm font-bold text-daara-text truncate">{user.displayName}</p>
                           <p className="text-xs text-daara-text-muted truncate">{user.email}</p>
                         </div>
-                        <div className="p-2 space-y-1">
-                          <button
-                            onClick={() => {
-                              setPage('dashboard');
-                              setIsUserMenuOpen(false);
-                            }}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-daara-text hover:text-daara-gold hover:bg-daara-gold/10 rounded-xl transition-colors"
-                          >
-                            <ClipboardList className="w-4 h-4" />
-                            Tableau de bord
-                          </button>
+                        <div className="p-2">
                           <button
                             onClick={() => {
                               setPage('quiz');
@@ -319,18 +189,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                             <Trophy className="w-4 h-4" />
                             Classement Quiz
                           </button>
-                          {isAdmin && (
-                            <button
-                              onClick={() => {
-                                setPage('admin');
-                                setIsUserMenuOpen(false);
-                              }}
-                              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-daara-gold hover:bg-daara-gold/10 rounded-xl transition-colors"
-                            >
-                              <Sliders className="w-4 h-4" />
-                              Administration
-                            </button>
-                          )}
                         </div>
                         <div className="p-2 border-t border-daara-gold/10">
                           <button
@@ -359,20 +217,8 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
               )}
             </nav>
 
-            <div className="flex items-center gap-2 xl:hidden">
-              {audioSrc && (
-                <button
-                  onClick={togglePlay}
-                  className={`p-2 rounded-xl border transition-all ${
-                    isPlaying 
-                      ? 'bg-daara-gold/10 border-daara-gold text-daara-gold' 
-                      : 'bg-daara-surface border-daara-gold/30 text-daara-text-muted'
-                  }`}
-                >
-                  {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
-                </button>
-              )}
-
+            {/* Mobile Menu Button */}
+            <div className="flex items-center gap-2 md:hidden">
               {startTutorial && (
                 <button
                   onClick={startTutorial}
@@ -409,24 +255,7 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
         </div>
       </header>
 
-      {authError && (
-        <div className="fixed top-20 left-0 right-0 z-[99] px-4 sm:px-6">
-          <div className="max-w-2xl mx-auto bg-red-500/15 border border-red-500/40 text-red-400 px-6 py-4 rounded-2xl backdrop-blur-lg shadow-xl flex items-start gap-3 animate-pulse">
-            <span className="text-red-500 text-xl shrink-0">⚠️</span>
-            <div className="flex-1">
-              <p className="font-bold text-sm mb-1">Erreur de connexion</p>
-              <p className="text-xs leading-relaxed opacity-90">{authError}</p>
-            </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="shrink-0 text-xs bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 px-3 py-1.5 rounded-lg transition-colors font-bold"
-            >
-              Réessayer
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* Mobile Nav - Full Screen Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -436,9 +265,11 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed inset-0 z-[100] flex flex-col bg-gradient-to-br from-daara-surface to-daara-bg overflow-hidden"
           >
+            {/* Decorative Background Element */}
             <div className="absolute top-0 right-0 w-full max-w-[500px] aspect-square bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 left-0 w-full max-w-[500px] aspect-square bg-daara-gold/5 rounded-full blur-[100px] pointer-events-none -translate-x-1/2 translate-y-1/2" />
 
+            {/* Top Bar inside Menu */}
             <div className="flex-none flex justify-between items-center px-4 sm:px-6 py-4 sm:py-6 relative z-10">
               <div 
                 className="flex items-center gap-2 cursor-pointer"
@@ -459,6 +290,7 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
               </button>
             </div>
 
+            {/* Menu Items - Scrollable */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 relative z-10 pb-6 scrollbar-hide">
               <div className="flex flex-col gap-2 sm:gap-4 mt-2">
                 {user ? (
@@ -487,13 +319,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                     </div>
                     <div className="p-2 grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => { setPage('dashboard'); setIsMobileMenuOpen(false); }}
-                        className="flex items-center justify-center gap-2 p-3 rounded-xl bg-daara-bg/50 hover:bg-daara-gold/10 text-daara-text hover:text-daara-gold transition-colors font-medium text-sm"
-                      >
-                        <ClipboardList className="w-4 h-4" />
-                        Tableau de bord
-                      </button>
-                      <button
                         onClick={() => { setPage('quiz'); setIsMobileMenuOpen(false); }}
                         className="flex items-center justify-center gap-2 p-3 rounded-xl bg-daara-bg/50 hover:bg-daara-gold/10 text-daara-text hover:text-daara-gold transition-colors font-medium text-sm"
                       >
@@ -507,15 +332,6 @@ export function Header({ currentPage, setPage, startTutorial, playlists = {} }: 
                         <Trophy className="w-4 h-4" />
                         Classement
                       </button>
-                      {isAdmin && (
-                        <button
-                          onClick={() => { setPage('admin'); setIsMobileMenuOpen(false); }}
-                          className="col-span-2 flex items-center justify-center gap-2 p-3 rounded-xl bg-daara-bg/50 hover:bg-daara-gold/10 text-daara-gold transition-colors font-medium text-sm"
-                        >
-                          <Sliders className="w-4 h-4" />
-                          Administration
-                        </button>
-                      )}
                     </div>
                   </div>
                 ) : (

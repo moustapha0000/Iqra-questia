@@ -4,8 +4,6 @@ import App from './App.tsx';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 import { AuthProvider } from './contexts/AuthContext';
-import { AudioProvider } from './contexts/AudioContext';
-import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Register PWA service worker
 const updateSW = registerSW({
@@ -19,12 +17,8 @@ const updateSW = registerSW({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
-      <AuthProvider>
-        <AudioProvider>
-          <App />
-        </AudioProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </StrictMode>,
 );

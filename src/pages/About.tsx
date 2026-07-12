@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Heart, BookOpen, Users, Mail } from 'lucide-react';
+import { LogoGenerator } from '../components/LogoGenerator';
 
 export function About() {
   return (
@@ -34,6 +35,10 @@ export function About() {
             <p className="text-sm text-daara-text-muted leading-relaxed">{item.desc}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mb-16">
+        <LogoGenerator />
       </div>
 
       <div className="bg-daara-surface border border-daara-gold/20 p-10 rounded-3xl text-center relative overflow-hidden shadow-2xl">
