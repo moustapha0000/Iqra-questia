@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User, BookMarked } from 'lucide-react';
 import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
@@ -68,9 +68,9 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
 
   const navItems: { id: PageType | 'quiz'; label: string; icon: React.ElementType }[] = [
     { id: 'home', label: 'Accueil', icon: Home },
-    { id: 'fondements', label: 'Fondements', icon: BookOpen },
-    { id: 'piliers', label: 'Piliers', icon: Star },
-    { id: 'fiqh', label: 'Fiqh', icon: BookText },
+    { id: 'tafsir', label: 'Tafsir du Coran', icon: BookOpen },
+    { id: 'lecture_coran', label: 'Lecture du Coran', icon: BookMarked },
+    { id: 'fiqh', label: 'Fiqh (Al-Ibadat)', icon: Star },
     { id: 'hadiths', label: 'Hadiths', icon: MessageCircle },
     { id: 'burdah', label: 'Burdah', icon: Heart },
     { id: 'prophetes', label: 'Prophètes', icon: Users },

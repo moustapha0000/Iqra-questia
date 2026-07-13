@@ -1,12 +1,12 @@
 import { PlaylistInfo, QuizData } from './types';
 
 export const playlists: Record<string, PlaylistInfo> = {
-  fondements: { id: "PLIGduk3xgf7vUmw3ast92nSWYXpKp0766", title: "Fondements ('Aqida)", desc: "La croyance islamique : Tawhid, Anges, Livres, Prophètes, Jour du Jugement et Destin." },
-  piliers: { id: "PLIGduk3xgf7s92i26Klb0Y9d-j8cbqtVE", title: "Piliers (Al-Ibadat)", desc: "La pratique religieuse : Purification, Prière, Zakat, Jeûne et Pèlerinage (basé sur Al-Akhdari)." },
-  fiqh: { id: "PLIGduk3xgf7vJHjaplWM9LeRUDM1kBPh5", title: "Fiqh (Jurisprudence)", desc: "Les règles de vie au quotidien : Halal/Haram, comportement, relations sociales et commerce." },
+  tafsir: { id: "PLIGduk3xgf7vUmw3ast92nSWYXpKp0766", title: "Tafsir du Coran", desc: "Comprendre les versets du Coran, explications et contextes de révélation." },
+  fiqh: { id: "PLIGduk3xgf7s92i26Klb0Y9d-j8cbqtVE", title: "Fiqh (Al-Ibadat)", desc: "La pratique religieuse : Purification, Prière, Zakat, Jeûne et Pèlerinage (basé sur Al-Akhdari)." },
   hadiths: { id: "PLIGduk3xgf7t4G6itxwTzOT_cipUAXiTg", title: "Hadiths & Sagesse", desc: "Les paroles du Prophète ﷺ et les leçons de vie (basé sur les 40 Hadiths de l'Imam An-Nawawi)." },
-  burdah: { id: "PLIGduk3xgf7vZ6STWEmt4bN0-xnLWVSue", title: "Spiritualité (Burdah)", desc: "Adoucir les cœurs et renforcer le lien affectif avec le Prophète ﷺ et les pieux prédécesseurs." },
-  prophetes: { id: "PL_FAKE_PROPHETES", title: "Histoire des Prophètes", desc: "Les récits fascinants et les leçons de vie des Prophètes de l'Islam (Qisas al-Anbiya)." }
+  burdah: { id: "PLIGduk3xgf7sMbMO1vRa5-MgUec3VGZzJ", title: "Spiritualité (Burdah)", desc: "Adoucir les cœurs et chanter les éloges du Prophète ﷺ." },
+  prophetes: { id: "PL_FAKE_PROPHETES", title: "Histoire des Prophètes", desc: "Les récits fascinants et les leçons de vie des Prophètes de l'Islam (Qisas al-Anbiya)." },
+  lecture_coran: { id: "PLIGduk3xgf7vjfkCfMfbR91GEbmDs5AM2", title: "Lecture du Coran", desc: "Apprendre à lire le Coran pas à pas (prononciation, règles de Tajwid et récitation)." }
 };
 
 export const quizData: QuizData = {

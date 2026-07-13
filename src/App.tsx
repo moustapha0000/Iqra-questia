@@ -20,7 +20,7 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '') as PageType;
-      if (hash && ['home', 'fondements', 'piliers', 'fiqh', 'hadiths', 'burdah', 'prophetes', 'apropos', 'quiz'].includes(hash)) {
+      if (hash && ['home', 'tafsir', 'fiqh', 'hadiths', 'burdah', 'prophetes', 'lecture_coran', 'apropos', 'quiz'].includes(hash)) {
         setCurrentPage(hash);
       } else {
         setCurrentPage('home');

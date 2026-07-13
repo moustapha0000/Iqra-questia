@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { PageType } from '../types';
-import { BookOpen, PlayCircle, BookText, Heart, Star, HelpCircle, Info, MessageCircle, Users, Server, Database, Shield, Lock, FileText } from 'lucide-react';
+import { BookOpen, PlayCircle, BookText, Heart, Star, HelpCircle, Info, MessageCircle, Users, Server, Database, Shield, Lock, FileText, BookMarked } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
 interface HomeProps {
@@ -42,12 +42,12 @@ export function Home({ setPage }: HomeProps) {
   };
 
   const cards = [
-    { id: 'fondements', title: 'Fondements', icon: BookOpen, desc: 'La croyance (\'Aqida)' },
-    { id: 'piliers', title: 'Piliers', icon: Star, desc: 'La pratique (Al-Ibadat)' },
-    { id: 'fiqh', title: 'Fiqh', icon: BookText, desc: 'Les règles du quotidien' },
-    { id: 'hadiths', title: 'Hadiths', icon: MessageCircle, desc: 'Paroles du Prophète ﷺ' },
+    { id: 'tafsir', title: 'Tafsir du Coran', icon: BookOpen, desc: 'Comprendre les versets du Coran, explications et contextes de révélation.' },
+    { id: 'lecture_coran', title: 'Lecture du Coran', icon: BookMarked, desc: 'Apprendre à lire le Coran pas à pas (prononciation, Tajwid et récitation).' },
+    { id: 'fiqh', title: 'Fiqh (Al-Ibadat)', icon: Star, desc: 'La pratique religieuse : Purification, Prière, Zakat, Jeûne et Pèlerinage.' },
+    { id: 'hadiths', title: 'Hadiths', icon: MessageCircle, desc: 'Paroles du Prophète ﷺ et leçons' },
+    { id: 'burdah', title: 'Spiritualité (Burdah)', icon: Heart, desc: 'Chants de louanges et éloges sur le Prophète ﷺ.' },
     { id: 'prophetes', title: 'Prophètes', icon: Users, desc: 'Histoires et leçons de vie' },
-    { id: 'burdah', title: 'Spiritualité', icon: Heart, desc: 'Amour du Prophète ﷺ' },
     { id: 'apropos', title: 'À propos', icon: Info, desc: 'Notre mission' },
   ];
 
@@ -104,7 +104,7 @@ export function Home({ setPage }: HomeProps) {
         </div>
 
         <button
-          onClick={() => setPage('fondements')}
+          onClick={() => setPage('lecture_coran')}
           className="relative z-10 inline-flex items-center gap-3 bg-gradient-to-r from-daara-gold to-daara-gold-light hover:from-daara-gold-light hover:to-daara-gold text-daara-bg px-10 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-lg shadow-daara-gold/20"
         >
           <PlayCircle className="w-6 h-6" />
