@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, X, Crown, Sparkles, Shield, Zap, ChevronRight, Star, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,6 +15,50 @@ export function Pricing({ setPage }: PricingProps) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [successPlan, setSuccessPlan] = useState<string | null>(null);
 
+  // Monitor returned payment token from PayDunya / Simulation
+  useEffect(() => {
+    const handleHashCheck = () => {
+      const currentHash = window.location.hash;
+      if (currentHash.includes('?')) {
+        const queryStr = currentHash.split('?')[1];
+        const params = new URLSearchParams(queryStr);
+        const token = params.get('token');
+        const planId = params.get('planId') as SubscriptionTier;
+        const userId = params.get('userId');
+        const isAnn = params.get('isAnnual') === 'true';
+
+        if (token && planId && userId && user && user.uid === userId) {
+          verifyPaymentToken(token, planId, userId, isAnn);
+        }
+      }
+    };
+
+    handleHashCheck();
+    window.addEventListener('hashchange', handleHashCheck);
+    return () => window.removeEventListener('hashchange', handleHashCheck);
+  }, [user]);
+
+  const verifyPaymentToken = async (token: string, planId: SubscriptionTier, userId: string, isAnn: boolean) => {
+    setLoadingPlan(planId);
+    try {
+      const response = await fetch(`/api/payments/verify-token?token=${token}&planId=${planId}&userId=${userId}&isAnnual=${isAnn}`);
+      const data = await response.json();
+      if (data.success) {
+        await updateSubscription(planId);
+        setSuccessPlan(planId);
+        // Clear query parameters to restore clean hash
+        window.location.hash = 'abonnement';
+        setTimeout(() => setSuccessPlan(null), 3000);
+      } else {
+        alert("La vérification du paiement a échoué. Veuillez réessayer ou contacter le support.");
+      }
+    } catch (e) {
+      console.error("Verification query error:", e);
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
   const handleSubscribe = async (planId: SubscriptionTier) => {
     if (!user) {
       await signInWithGoogle();
@@ -22,17 +66,57 @@ export function Pricing({ setPage }: PricingProps) {
     }
     if (planId === subscription) return;
 
+    // Plan gratuit: simple update directly
+    if (planId === 'free') {
+      setLoadingPlan(planId);
+      try {
+        await updateSubscription('free');
+        setSuccessPlan(planId);
+        setTimeout(() => setSuccessPlan(null), 3000);
+      } catch (e) {
+        console.error('Subscription downgrading error:', e);
+      } finally {
+        setLoadingPlan(null);
+      }
+      return;
+    }
+
+    // Paid plans: request payment URL from backend
     setLoadingPlan(planId);
+    const plan = subscriptionPlans.find(p => p.id === planId);
+    const price = isAnnual ? plan!.priceAnnual : plan!.price;
+
     try {
-      await updateSubscription(planId);
-      setSuccessPlan(planId);
-      setTimeout(() => setSuccessPlan(null), 3000);
+      const res = await fetch('/api/payments/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId,
+          userId: user.uid,
+          price,
+          isAnnual,
+          email: user.email || '',
+          name: user.displayName || 'Utilisateur Iqra'
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        // Redirect to PayDunya checkout / mock simulation checkout page
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Une erreur s'est produite lors de l'initialisation du paiement.");
+        setLoadingPlan(null);
+      }
     } catch (e) {
       console.error('Subscription error:', e);
-    } finally {
+      alert("Impossible de joindre le serveur de paiement. Veuillez réessayer.");
       setLoadingPlan(null);
     }
   };
+
 
   const getPlanIcon = (planId: string) => {
     switch (planId) {
