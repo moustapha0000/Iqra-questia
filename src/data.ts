@@ -1,13 +1,99 @@
-import { PlaylistInfo, QuizData } from './types';
+import { PlaylistInfo, QuizData, SubscriptionPlan } from './types';
 
 export const playlists: Record<string, PlaylistInfo> = {
-  tafsir: { id: "PLIGduk3xgf7vUmw3ast92nSWYXpKp0766", title: "Tafsir du Coran", desc: "Comprendre les versets du Coran, explications et contextes de révélation." },
-  fiqh: { id: "PLIGduk3xgf7s92i26Klb0Y9d-j8cbqtVE", title: "Fiqh (Al-Ibadat)", desc: "La pratique religieuse : Purification, Prière, Zakat, Jeûne et Pèlerinage (basé sur Al-Akhdari)." },
-  hadiths: { id: "PLIGduk3xgf7t4G6itxwTzOT_cipUAXiTg", title: "Hadiths & Sagesse", desc: "Les paroles du Prophète ﷺ et les leçons de vie (basé sur les 40 Hadiths de l'Imam An-Nawawi)." },
-  burdah: { id: "PLIGduk3xgf7sMbMO1vRa5-MgUec3VGZzJ", title: "Spiritualité (Burdah)", desc: "Adoucir les cœurs et chanter les éloges du Prophète ﷺ." },
-  prophetes: { id: "PL_FAKE_PROPHETES", title: "Histoire des Prophètes", desc: "Les récits fascinants et les leçons de vie des Prophètes de l'Islam (Qisas al-Anbiya)." },
-  lecture_coran: { id: "PLIGduk3xgf7vjfkCfMfbR91GEbmDs5AM2", title: "Lecture du Coran", desc: "Apprendre à lire le Coran pas à pas (prononciation, règles de Tajwid et récitation)." }
+  tafsir: { id: "PLIGduk3xgf7vUmw3ast92nSWYXpKp0766", title: "Tafsir du Coran", desc: "Comprendre les versets du Coran, explications et contextes de révélation.", requiredPlan: "free" },
+  lecture_coran: { id: "PLIGduk3xgf7vjfkCfMfbR91GEbmDs5AM2", title: "Lecture du Coran", desc: "Apprendre à lire le Coran pas à pas (prononciation, règles de Tajwid et récitation).", requiredPlan: "free" },
+  fiqh: { id: "PLIGduk3xgf7s92i26Klb0Y9d-j8cbqtVE", title: "Fiqh (Al-Ibadat)", desc: "La pratique religieuse : Purification, Prière, Zakat, Jeûne et Pèlerinage (basé sur Al-Akhdari).", requiredPlan: "basic" },
+  hadiths: { id: "PLIGduk3xgf7t4G6itxwTzOT_cipUAXiTg", title: "Hadiths & Sagesse", desc: "Les paroles du Prophète ﷺ et les leçons de vie (basé sur les 40 Hadiths de l'Imam An-Nawawi).", requiredPlan: "standard" },
+  burdah: { id: "PLIGduk3xgf7sMbMO1vRa5-MgUec3VGZzJ", title: "Spiritualité (Burdah)", desc: "Adoucir les cœurs et chanter les éloges du Prophète ﷺ.", requiredPlan: "standard" },
+  prophetes: { id: "PL_FAKE_PROPHETES", title: "Histoire des Prophètes", desc: "Les récits fascinants et les leçons de vie des Prophètes de l'Islam (Qisas al-Anbiya).", requiredPlan: "premium" }
 };
+
+// Subscription tier hierarchy for access checks
+export const TIER_LEVEL: Record<string, number> = { free: 0, basic: 1, standard: 2, premium: 3 };
+
+export function hasAccess(userTier: string, requiredTier: string): boolean {
+  return (TIER_LEVEL[userTier] ?? 0) >= (TIER_LEVEL[requiredTier] ?? 0);
+}
+
+export const subscriptionPlans: SubscriptionPlan[] = [
+  {
+    id: 'free',
+    name: 'Gratuit',
+    price: 0,
+    priceAnnual: 0,
+    badge: '🆓',
+    badgeColor: 'from-gray-400 to-gray-500',
+    features: [
+      'Tafsir du Coran (aperçu)',
+      'Lecture du Coran (aperçu)',
+      'Quiz niveau Facile',
+      'Chatbot Oustaz (5 msg/jour)',
+    ],
+    limitations: [
+      'Pas d\'accès au Fiqh',
+      'Pas d\'accès aux Hadiths',
+      'Pas d\'accès à Burdah & Prophètes',
+    ],
+  },
+  {
+    id: 'basic',
+    name: 'Basique',
+    price: 1500,
+    priceAnnual: 1200,
+    badge: '🥉',
+    badgeColor: 'from-amber-600 to-amber-700',
+    features: [
+      'Tafsir du Coran (complet)',
+      'Lecture du Coran (complet)',
+      'Fiqh (Al-Ibadat)',
+      'Quiz Facile + Moyen',
+      'Chatbot Oustaz (20 msg/jour)',
+    ],
+    limitations: [
+      'Pas d\'accès aux Hadiths',
+      'Pas d\'accès à Burdah & Prophètes',
+    ],
+  },
+  {
+    id: 'standard',
+    name: 'Standard',
+    price: 3500,
+    priceAnnual: 2800,
+    badge: '⭐',
+    badgeColor: 'from-daara-gold to-yellow-500',
+    recommended: true,
+    features: [
+      'Tout le plan Basique',
+      'Hadiths & Sagesse',
+      'Spiritualité (Burdah)',
+      'Quiz tous niveaux',
+      'Chatbot Oustaz illimité',
+      'Badge « Étudiant Assidu »',
+    ],
+    limitations: [
+      'Pas d\'accès aux Prophètes',
+    ],
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    price: 7500,
+    priceAnnual: 6000,
+    badge: '👑',
+    badgeColor: 'from-yellow-400 to-amber-500',
+    features: [
+      'Accès illimité à tout',
+      'Histoire des Prophètes (exclusif)',
+      'Support prioritaire',
+      'Badge « Mujtahid » doré',
+      'Accès anticipé aux nouveaux modules',
+      'Pas de publicité',
+    ],
+    limitations: [],
+  },
+];
+
 
 export const quizData: QuizData = {
   facile: [
