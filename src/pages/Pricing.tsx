@@ -15,20 +15,20 @@ export function Pricing({ setPage }: PricingProps) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [successPlan, setSuccessPlan] = useState<string | null>(null);
 
-  // Monitor returned payment token from PayDunya / Simulation
+  // Monitor returned payment reference from Paystack / Simulation
   useEffect(() => {
     const handleHashCheck = () => {
       const currentHash = window.location.hash;
       if (currentHash.includes('?')) {
         const queryStr = currentHash.split('?')[1];
         const params = new URLSearchParams(queryStr);
-        const token = params.get('token');
+        const reference = params.get('reference') || params.get('token'); // Fallback to token if simulated earlier
         const planId = params.get('planId') as SubscriptionTier;
         const userId = params.get('userId');
         const isAnn = params.get('isAnnual') === 'true';
 
-        if (token && planId && userId && user && user.uid === userId) {
-          verifyPaymentToken(token, planId, userId, isAnn);
+        if (reference && planId && userId && user && user.uid === userId) {
+          verifyPaymentToken(reference, planId, userId, isAnn);
         }
       }
     };
@@ -38,10 +38,10 @@ export function Pricing({ setPage }: PricingProps) {
     return () => window.removeEventListener('hashchange', handleHashCheck);
   }, [user]);
 
-  const verifyPaymentToken = async (token: string, planId: SubscriptionTier, userId: string, isAnn: boolean) => {
+  const verifyPaymentToken = async (reference: string, planId: SubscriptionTier, userId: string, isAnn: boolean) => {
     setLoadingPlan(planId);
     try {
-      const response = await fetch(`/api/payments/verify-token?token=${token}&planId=${planId}&userId=${userId}&isAnnual=${isAnn}`);
+      const response = await fetch(`/api/payments/verify-token?reference=${reference}&planId=${planId}&userId=${userId}&isAnnual=${isAnn}`);
       const data = await response.json();
       if (data.success) {
         await updateSubscription(planId);
@@ -58,6 +58,7 @@ export function Pricing({ setPage }: PricingProps) {
       setLoadingPlan(null);
     }
   };
+
 
   const handleSubscribe = async (planId: SubscriptionTier) => {
     if (!user) {
