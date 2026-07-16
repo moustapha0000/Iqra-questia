@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User, BookMarked, Crown } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Star, BookText, MessageCircle, Heart, Info, ArrowRight, Download, Sun, Moon, HelpCircle, Users, LogIn, LogOut, Trophy, User, BookMarked } from 'lucide-react';
 import { PageType } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './Logo';
@@ -75,7 +75,6 @@ export function Header({ currentPage, setPage, startTutorial }: HeaderProps) {
     { id: 'burdah', label: 'Burdah', icon: Heart },
     { id: 'prophetes', label: 'Prophètes', icon: Users },
     { id: 'quiz', label: 'Quiz', icon: HelpCircle },
-    { id: 'abonnement', label: 'Abonnement', icon: Crown },
     { id: 'apropos', label: 'À propos', icon: Info },
   ];
 
