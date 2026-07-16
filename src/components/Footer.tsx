@@ -12,7 +12,7 @@ export function Footer() {
           <p className="text-daara-text-muted max-w-xl mx-auto mb-6">
             Votre soutien est essentiel pour nous aider à maintenir les serveurs, améliorer l'application et créer toujours plus de contenu de qualité. Participez à ce projet et gagnez des récompenses (Sadaqah Jariyah).
           </p>
-          <a href="https://apps.koparexpress.com/apps/collectes/dt08ajg49u" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-daara-text hover:bg-daara-text/90 text-daara-bg px-8 py-3 rounded-full font-bold transition-all hover:scale-105 shadow-lg shadow-daara-gold/5">
+          <a href="https://pay.wave.com/m/M_sn_OA6LjFkShKQN/c/sn/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-daara-text hover:bg-daara-text/90 text-daara-bg px-8 py-3 rounded-full font-bold transition-all hover:scale-105 shadow-lg shadow-daara-gold/5">
             <Heart className="w-5 h-5 text-daara-gold" />
             Faire un don
           </a>
