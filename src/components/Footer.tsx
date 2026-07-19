@@ -19,9 +19,13 @@ export function Footer() {
         </div>
 
         <div className="border-t border-daara-gold/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-daara-text-muted font-medium">
-            &copy; {new Date().getFullYear()} Iqra Quest – Plateforme islamique d’apprentissage
-          </p>
+          <div className="text-daara-text-muted font-medium text-sm md:text-base flex flex-col md:flex-row gap-2 md:gap-4 items-center">
+            <span>&copy; {new Date().getFullYear()} Iqra Quest</span>
+            <span className="hidden md:inline">•</span>
+            <span>Plateforme islamique d’apprentissage</span>
+            <span className="hidden md:inline">•</span>
+            <a href="#/legal" className="hover:text-daara-gold transition-colors">Mentions Légales & Confidentialité</a>
+          </div>
           <div className="flex items-center gap-4">
             <a 
               href="https://youtube.com/@iqraquest?si=U53kIhfaAc6BD5ZW" 

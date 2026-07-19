@@ -5,8 +5,8 @@ export const playlists: Record<string, PlaylistInfo> = {
   lecture_coran: { id: "PLIGduk3xgf7vjfkCfMfbR91GEbmDs5AM2", title: "Lecture du Coran", desc: "Apprendre à lire le Coran pas à pas (prononciation, règles de Tajwid et récitation)." },
   fiqh: { id: "PLIGduk3xgf7s92i26Klb0Y9d-j8cbqtVE", title: "Fiqh (Al-Ibadat)", desc: "La pratique religieuse : Purification, Prière, Zakat, Jeûne et Pèlerinage (basé sur Al-Akhdari)." },
   hadiths: { id: "PLIGduk3xgf7t4G6itxwTzOT_cipUAXiTg", title: "Hadiths & Sagesse", desc: "Les paroles du Prophète ﷺ et les leçons de vie (basé sur les 40 Hadiths de l'Imam An-Nawawi)." },
-  burdah: { id: "PLIGduk3xgf7sMbMO1vRa5-MgUec3VGZzJ", title: "Spiritualité (Burdah)", desc: "Adoucir les cœurs et chanter les éloges du Prophète ﷺ." },
-  prophetes: { id: "PL_FAKE_PROPHETES", title: "Histoire des Prophètes", desc: "Les récits fascinants et les leçons de vie des Prophètes de l'Islam (Qisas al-Anbiya)." }
+  burdah: { id: "PLIGduk3xgf7sMbMO1vRa5-MgUec3VGZzJ", title: "Spiritualité (Burdah)", desc: "Adoucir les cœurs et chanter les éloges du Prophète ﷺ." }
+  // prophetes: { id: "PL_FAKE_PROPHETES", title: "Histoire des Prophètes", desc: "Les récits fascinants et les leçons de vie des Prophètes de l'Islam (Qisas al-Anbiya)." }
 };
 
 

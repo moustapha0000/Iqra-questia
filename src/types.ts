@@ -1,4 +1,4 @@
-export type PageType = 'home' | 'tafsir' | 'fiqh' | 'hadiths' | 'burdah' | 'prophetes' | 'lecture_coran' | 'apropos' | 'quiz';
+export type PageType = 'home' | 'tafsir' | 'fiqh' | 'hadiths' | 'burdah' | 'prophetes' | 'lecture_coran' | 'apropos' | 'quiz' | 'legal';
 
 
 export interface PlaylistInfo {
