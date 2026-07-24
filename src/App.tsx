@@ -10,7 +10,7 @@ import { Chatbot } from './components/Chatbot';
 
 import { playlists } from './data';
 import { AnimatePresence } from 'motion/react';
-import { MessageCircle, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const IqraQuiz = React.lazy(() => import('./iqra-quiz/App'));
 
